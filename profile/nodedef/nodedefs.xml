@@ -1,0 +1,61 @@
+<nodeDefs> 
+   <nodeDef id="controller" nls="nlscontroller">
+      <editors />
+      <sts>
+         <st id="ST"  editor="CON" />
+         <st id="GV1" editor="NBRSPAN" />
+      </sts>
+      <cmds>
+         <sends>
+            <cmd id="DON" /> 
+            <cmd id="DOF" /> 
+         </sends>
+         <accepts>
+            <cmd id="UPDATE" /> 
+         </accepts>
+      </cmds>
+   </nodeDef> 
+
+   <nodeDef id="spanpanel" nls="nlsspanpanel">
+      <editors />
+      <sts>
+         <st id="ST" editor="CON" />      
+         <st id="GV0" editor="OPENCLOSE" />
+         <st id="GV1" editor="KW" />
+         <st id="GV2" editor="KWH" />
+      </sts>
+      <cmds>
+         <sends>
+         </sends>
+         <accepts>
+            <cmd id="UPDATE" /> 
+         </accepts>
+      </cmds>
+   </nodeDef> 
+
+
+   <nodeDef id="spancircuit" nls="nlsspancircuit">
+      <editors />
+      <sts>
+         <st id="ST" editor="OPENCLOSE" />     
+         <!--      
+         <st id="GV0" editor="KWH" />
+         <st id="GV1" editor="KWH" />
+         <st id="GV2" editor="KWH" />
+         <st id="GV3" editor="KWH" />
+         <st id="GV4" editor="KWH" />
+         <st id="GV5" editor="OP_MODE" />
+         <st id="GV6" editor="GRID_ST" />
+         <st id="GV7" editor="EN_MODE" />
+         -->
+      </sts>
+      <cmds>
+         <sends>
+         </sends>
+         <accepts>
+            <cmd id="UPDATE" /> 
+         </accepts>
+      </cmds>
+   </nodeDef> 
+ 
+</nodeDefs> 
