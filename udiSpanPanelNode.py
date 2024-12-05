@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #import time
-from Spanlib import SpanAccess
+from SPANlib import SpanAccess
 try:
     import udi_interface
     logging = udi_interface.LOGGER
@@ -22,8 +22,7 @@ class udiSpanPanelNode(udi_interface.Node):
         self.span_ipadr = span_ipadr
         self.token = token
         self.ISYforced = False
-        self.site_id = site_id
-        self.TPW = TPW
+
         self.node_ok = False
         self.address = address
         self.primary = primary
@@ -48,8 +47,7 @@ class udiSpanPanelNode(udi_interface.Node):
         logging.info('Adding power wall sub-nodes')
         self.span_panel = SpanAccess(self.span_ipadr, self.token)
        
-        #if self.TPW.cloud_access_enabled():
-        
+           
   
 
 
@@ -111,45 +109,7 @@ class udiSpanPanelNode(udi_interface.Node):
     id = 'pwstatus'
     commands = { 'UPDATE': ISYupdate, 
                 }
-    '''
-    ST-nlspwstatus-ST-NAME = Connected to Tesla
-    ST-nlspwstatus-GV0-NAME = Remaining Battery 
-    ST-nlspwstatus-GV1-NAME = Inst Solar Export
-    ST-nlspwstatus-GV2-NAME = Inst Battery Export
-    ST-nlspwstatus-GV3-NAME = Inst Home Load
-    ST-nlspwstatus-GV4-NAME = Inst Grid Import
-
-    ST-nlspwstatus-GV5-NAME = Operation Mode
-    ST-nlspwstatus-GV6-NAME = Grid Status
-    ST-nlspwstatus-GV7-NAME = Grid Services Active
-
-    ST-nlspwstatus-GV8-NAME = Home Total Use Today
-    ST-nlspwstatus-GV9-NAME = Solar Export Today
-    ST-nlspwstatus-GV10-NAME = Battery Export Today
-    ST-nlspwstatus-GV11-NAME = Battery Import Today
-    ST-nlspwstatus-GV12-NAME = Grid Import Today
-    ST-nlspwstatus-GV13-NAME = Grid Export Today
-    ST-nlspwstatus-GV14-NAME = Grid Service Today
-
-    ST-nlspwstatus-GV15-NAME = Home Total Use Yesterday
-    ST-nlspwstatus-GV16-NAME = Solar Export Yesterday
-    ST-nlspwstatus-GV17-NAME = Battery Export Yesterday
-    ST-nlspwstatus-GV18-NAME = Battery Import Yesterday
-    ST-nlspwstatus-GV19-NAME = Grid Export Yesterday
-    ST-nlspwstatus-GV20-NAME = Grid Import Yesterday
-    ST-nlspwstatus-GV21-NAME = Grid Service Yesterday
-
-    ST-nlspwstatus-GV22-NAME = Today nbr backup events 
-    ST-nlspwstatus-GV23-NAME = Today backup event time
-    ST-nlspwstatus-GV24-NAME = Yesterday nbr backup events 
-    ST-nlspwstatus-GV25-NAME = Yesterday backup event time
-    ST-nlspwstatus-GV26-NAME = Today charge power
-    ST-nlspwstatus-GV27-NAME = Today charge time
-    ST-nlspwstatus-GV28-NAME = Yesterday charge power
-    ST-nlspwstatus-GV29-NAME = Yesterday charge time
-
-    '''
-
+ 
     drivers = [
             {'driver': 'ST', 'value': 99, 'uom': 25},  #online         
             {'driver': 'GV0', 'value': 0, 'uom': 51},       
@@ -157,24 +117,6 @@ class udiSpanPanelNode(udi_interface.Node):
             {'driver': 'GV2', 'value': 0, 'uom': 33},  
             {'driver': 'GV3', 'value': 0, 'uom': 33}, 
             {'driver': 'GV4', 'value': 0, 'uom': 33},  
-
-            {'driver': 'GV5', 'value': 99, 'uom': 25},  
-            {'driver': 'GV6', 'value': 99, 'uom': 25},  
-            {'driver': 'GV7', 'value': 99, 'uom': 25},  
-
-            {'driver': 'GV29', 'value': 99, 'uom': 25}, 
-            {'driver': 'GV8', 'value': 99, 'uom': 25}, 
-
-            {'driver': 'GV9', 'value': 0, 'uom': 33}, 
-            {'driver': 'GV10', 'value': 0, 'uom': 33},  
-            {'driver': 'GV11', 'value': 0, 'uom': 33},  
-            {'driver': 'GV12', 'value': 0, 'uom': 33},
-            {'driver': 'GV13', 'value': 0, 'uom': 33}, 
-            {'driver': 'GV14', 'value': 0, 'uom': 33}, 
-
-            {'driver': 'GV28', 'value': 0, 'uom': 33},
-            
-   
                      
             ]
 
