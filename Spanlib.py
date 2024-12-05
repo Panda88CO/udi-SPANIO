@@ -19,7 +19,7 @@ class SpanAccess(object):
     def __init__ (self, IPaddress, token):
         self.IP_address = IPaddress
         self.accessToken = token
-        #self.accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1ZGkgU1BBTklPIDEyMzQ1NDMyMSIsImlhdCI6MTczMzE3MTgxNX0.rNCj_0qBIckxvqPzdHGkTxoyRJ5B_4nym-urym2fjqk'
+        
         self.yourApiEndpoint = f'http://{self.IP_address}/api/v1'
         self.STATUS      = '/status'
         #self.SPACES      = '/spaces'
