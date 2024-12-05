@@ -39,8 +39,18 @@ class SpanAccess(object):
     def getSpanCircuitsInfo(self):
         logging.debug(f'getSpanCircuitsInfo ({self.IP_address})')        
         code, circuits = self._callApi('GET', '/circuits')
-        return(code, circuits)
+        if code == 200:
+            return(code, circuits['spaces'])
+        else:
+            return(code, circuits)
     
+
+    def getSpanBreakerInfo(self, id):
+        logging.debug(f'getSpanBreakerInfo ({self.IP_address})')        
+        code, circuitInf = self._callApi('GET', '/circuits/'+str(id))
+        return(code, circuitInf)
+    
+
     def getSpanStatusInfo(self):
         logging.debug(f'getSpanStatusIndo ({self.IP_address})')
         code, status = self._callApi('GET', '/status')
@@ -62,6 +72,7 @@ class SpanAccess(object):
         return(code, clients)
 
 
+    '''
     def registerSpanPanel(self, force=False):
         logging.debug(f'registerSpanPanel ({self.IP_address})')
         try:
@@ -79,7 +90,7 @@ class SpanAccess(object):
             return(self.accessToken)   
         except Exception as e:
             return(None)
-             
+    '''         
 
 
     def _callApi(self, method='GET', url=None, body=None):

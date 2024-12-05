@@ -133,16 +133,15 @@ class SPANController(udi_interface.Node):
         # We will automatically query the device after discovery
         #controller.addNodeDoneHandler(node)
 
-    def registerSpanPanel(self, ipAddress):
-        logging.debug(f'registerSpanPanel ({ipAddress})')
+    def registerSpanPanel(self, ipAddress, uid):
+        logging.debug(f'registerSpanPanel ({ipAddress}) , ({uid})')
         accessToken = None
         try:       
-            randomstr =  self.random_string(10)
-            logging.debug(f'randomstr: {randomstr}') 
+
             headers = {'Content-Type': 'application/json',
                        'accept': 'application/json'}
             data ={
-                    'name':'udiSPAN-'+randomstr,
+                    'name':'udiSPAN-'+str(uid),
                     'description':'UDI integration of SpanIO panels'
                 }
     
@@ -178,6 +177,11 @@ class SPANController(udi_interface.Node):
             time.sleep(1)
         #logging.debug('access {} {}'.format(self.local_access_enabled, self.cloud_access_enabled))
         
+        if 'uid' not in self.customData.keys():
+            uid = self.random_string(16)
+            self.customData['uid']= uid
+        else:
+            uid = self.customData['uid']
         for indx, IPaddress in enumerate(self.span_ip_list):
             #self.span_panel[indx]= SpanAccess(IPaddress)    
             token = None
@@ -187,14 +191,13 @@ class SPANController(udi_interface.Node):
                 token = self.customData[IPaddress]
             else:
                 while token == None:
-                    token = self.registerSpanPanel(IPaddress)
+                    token = self.registerSpanPanel(IPaddress, uid)
                     if token != None:
                         self.customData[IPaddress]= token
                     else:
                         self.poly.Notices['panel'] = 'Click Span Panel door switch 3 times to register Panels'
                         time.sleep(10)
             self.poly.Notices.clear()
-    
             self.span_panel[indx] = udiSpanPanelNode(self.poly, address, address, nodename, IPaddress, token)    
             # need to retrieve unique ID and Token and store in customData          
             

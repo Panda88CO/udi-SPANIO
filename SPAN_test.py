@@ -25,4 +25,6 @@ code, circuits = spantest.getSpanCircuitsInfo()
 code, battery = spantest.getSpanBatteryInfo()
 code, clients = spantest.getSpanClientInfo()
 #spaces = spantest._callApi('GET', '/spaces')
+for cir in circuits:
+    code, circuitInf = spantest.getSpanBreakerInfo(cir)
 print('end')

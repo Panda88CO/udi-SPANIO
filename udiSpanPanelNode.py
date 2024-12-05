@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 #import time
-from SPANlib import SpanAccess
+from Spanlib import SpanAccess
+from udiSpanCircuitNode import udiSpanCircuitNode
 try:
     import udi_interface
     logging = udi_interface.LOGGER
@@ -20,6 +21,7 @@ class udiSpanPanelNode(udi_interface.Node):
         logging.info(f'_init_ Span Panel Status Node {span_ipadr}, {token}')
         self.poly = polyglot
         self.span_ipadr = span_ipadr
+        self.panel_node_adr = address
         self.token = token
         self.ISYforced = False
 
@@ -40,16 +42,27 @@ class udiSpanPanelNode(udi_interface.Node):
         #self.TPW.tesla_get_live_status(self.site_id)
         
         #polyglot.subscribe(polyglot.START, self.start, address)
+        self.circuit_access = {}
         
     def start(self):   
         logging.debug('Start Tesla Power Wall Status Node')
         #self.TPW = tesla_info(self.my_TeslaPW, self.site_id)
         logging.info('Adding power wall sub-nodes')
         self.span_panel = SpanAccess(self.span_ipadr, self.token)
-       
-           
-  
-
+        code, self.panel = self.span_panel.getSpanPanelInfo()
+        logging.debug(f'Panel {self.span_ipadr} info: {code} , {self.panel}')
+        code, self.battery_info = self.span_panel.getSpanBatteryInfo()
+        logging.debug(f'Panel {self.span_ipadr} Battery info: {code} , {self.battery_info}')        
+        code, self.panel_status = self.span_panel.getSpanStatusInfo()
+        logging.debug(f'Panel {self.span_ipadr} Status info: {code} , {self.panel_status }')        
+        code, self.circuits = self.span_panel.getSpanCircuitsInfo()
+        logging.debug(f'Panel {self.span_ipadr} Circuits info: {code} , {self.circuits }')            
+        if code == 200:
+            for circuit in self.circuits:
+                logging.debug(f'adding circuit {circuit} = {self.circuits[circuit]['name']}')
+                nodeaddress  = self.poly.getValidAddress(circuit)
+                nodename = self.poly.getValidName(self.circuits[circuit]['name'])
+                self.circuit_access[circuit] = udiSpanCircuitNode(self.poly, self.panel_node_adr, nodeaddress, nodename, str(circuit) )
 
         self.updateISYdrivers()
         self.node_ok = True
