@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #import time
-from Spanlib import SpanAccess
+
 try:
     import udi_interface
     logging = udi_interface.LOGGER
@@ -12,18 +12,16 @@ except ImportError:
 
 
 
-class udiSpanPanelNode(udi_interface.Node):
+class udiSpanCircuitNode(udi_interface.Node):
     from  udiLib import node_queue, wait_for_node_done, mask2key, bool2ISY, round2ISY, my_setDriver
 
-    def __init__(self, polyglot, primary, address, name, span_ipadr, token):
+    def __init__(self, polyglot, primary, address, name, span_access):
         #super(teslaPWStatusNode, self).__init__(polyglot, primary, address, name)
-        logging.info(f'_init_ Span Panel Status Node {span_ipadr}, {token}')
+        logging.info(f'_init_ Span Circuit Node {name}')
         self.poly = polyglot
-        self.span_ipadr = span_ipadr
-        self.token = token
-        self.ISYforced = False
-        self.site_id = site_id
-        self.TPW = TPW
+        self.span = span_access
+
+
         self.node_ok = False
         self.address = address
         self.primary = primary
@@ -46,8 +44,8 @@ class udiSpanPanelNode(udi_interface.Node):
         logging.debug('Start Tesla Power Wall Status Node')
         #self.TPW = tesla_info(self.my_TeslaPW, self.site_id)
         logging.info('Adding power wall sub-nodes')
-        self.span_panel = SpanAccess(self.span_ipadr, self.token)
-       
+
+        sub_adr = self.primary[-8:]
         #if self.TPW.cloud_access_enabled():
         
   

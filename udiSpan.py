@@ -1,8 +1,9 @@
 import sys
 import time 
 import traceback
+import requests
+import json
 
-from Spanlib import SpanAccess
 from udiSpanPanelNode import udiSpanPanelNode
 try:
     import udi_interface
@@ -15,15 +16,15 @@ except ImportError:
     logging.basicConfig(level=30)
 
 
-VERSION = '0.1.26'
+VERSION = '0.0.1'
 class SPANController(udi_interface.Node):
-    from  udiLib import node_queue, wait_for_node_done, mask2key, heartbeat, bool2ISY, my_setDriver
+    from  udiLib import node_queue, wait_for_node_done, random_string, mask2key, heartbeat, bool2ISY, my_setDriver
 
     def __init__(self, polyglot, primary, address, name):
         super(SPANController, self).__init__(polyglot, primary, address, name )
 
         self.poly = polyglot
-        logging.info(f'_init_ TSPAN Controller ver {VERSION} ')
+        logging.info(f'_init_ SPAN Controller ver {VERSION} ')
         self.ISYforced = False
         self.name = name
         self.primary = primary
@@ -37,11 +38,23 @@ class SPANController(udi_interface.Node):
         self.span_ip_list = []
 
         self.customParameters = Custom(self.poly, 'customparams')
-
+        self.customData = Custom(polyglot, 'customdata')
         self.Notices = Custom(self.poly, 'notices')
 
-        self.poly.subscribe(self.poly.ADDNODEDONE, self.node_queue)
+        #SPAN =SPANController(polyglot, 'controller', 'controller', 'SPAN Panels')
+        #polyglot.addNode(TPW)
+        
+        logging.debug('before subscribe')
+        polyglot.subscribe(polyglot.STOP, self.stop)
+        polyglot.subscribe(polyglot.CUSTOMPARAMS, self.customParamsHandler)
+        polyglot.subscribe(polyglot.CUSTOMDATA, self.customDataHandler) 
+        polyglot.subscribe(polyglot.CONFIGDONE, self.configDoneHandler)
+        polyglot.subscribe(polyglot.ADDNODEDONE, self.node_queue)        
+        polyglot.subscribe(polyglot.LOGLEVEL, self.handleLevelChange)
+        polyglot.subscribe(polyglot.NOTICES, self.handleNotices)
+        polyglot.subscribe(polyglot.POLL, self.systemPoll)
 
+        #polyglot.subscribe(polyglot.OAUTH, TPW_cloud.oauthHandler)
 
         logging.debug('self.address : ' + str(self.address))
         logging.debug('self.name :' + str(self.name))
@@ -59,10 +72,20 @@ class SPANController(udi_interface.Node):
         self.node = self.poly.getNode(self.address)
         logging.debug('Node info: {}'.format(self.node))
         self.my_setDriver('ST', 1)
+        logging.debug('Calling start')       
+        polyglot.subscribe(polyglot.START, self.start, 'controller')
+        self.poly.updateProfile()
         logging.debug('finish Init ')
+        
 
 
-
+    
+    def customDataHandler(self, Data):
+        logging.debug('customDataHandler')
+        self.customData.load(Data)
+        logging.debug('handleData load - {}'.format(self.customData))
+    
+ 
     def check_config(self):
         self.nodes_in_db = self.poly.getNodesFromDb()
         self.config_done= True
@@ -75,9 +98,11 @@ class SPANController(udi_interface.Node):
         self.nodes_in_db = self.poly.getNodesFromDb()
         self.config_done= True
 
-    
-    def oauthHandler(self, token):
-        self.TPW_cloud.oauthHandler(token)
+    def handleLevelChange(self, level):
+        logging.info('New log level: {}'.format(level))
+
+    def handleNotices(self, level):
+        logging.info('handleNotices:')
 
     def customParamsHandler(self, userParams):
         #logging.debug('customParamsHandler 1 : {}'.format(self.TPW_cloud._oauthTokens))
@@ -91,25 +116,60 @@ class SPANController(udi_interface.Node):
 
         if 'LOCAL_IP_ADDRESSES' in self.customParameters:
             if self.customParameters['LOCAL_IP_ADDRESSES'] != 'x.x.x.x':
-
-                self.span_ip_list.split(self.customParameters['LOCAL_IP_ADDRESSES'] )
+                ipstring = self.customParameters['LOCAL_IP_ADDRESSES']
+                self.span_ip_list= ipstring.split()
                 self.NBR_PANELS = len(self.span_ip_list)
                 #oauthSettingsUpdate['client_secret'] = self.customParameters['clientSecret']
                 #secret_ok = True
         else:
             logging.warning('No LOCAL_IP_ADDRESS found')
-            self.customParameters['LOCAL_IP_ADDRESS'] = 'enter LOCAL_IP_ADDRESS'
+            self.customParameters['LOCAL_IP_ADDRESS'] = 'enter list of LOCAL_IP_ADDRESSES (one per panel)'
             self.LOCAL_IP_ADDRESS = None
         logging.debug('customParamsHandler finish ')
         self.customParam_done = True
 
+    def addNodeDoneHandler(self, node):
+        pass
+        # We will automatically query the device after discovery
+        #controller.addNodeDoneHandler(node)
+
+    def registerSpanPanel(self, ipAddress):
+        logging.debug(f'registerSpanPanel ({ipAddress})')
+        accessToken = None
+        try:       
+            randomstr =  self.random_string(10)
+            logging.debug(f'randomstr: {randomstr}') 
+            headers = {'Content-Type': 'application/json',
+                       'accept': 'application/json'}
+            data ={
+                    'name':'udiSPAN-'+randomstr,
+                    'description':'UDI integration of SpanIO panels'
+                }
+    
+            completeUrl = f'http://{ipAddress}/api/v1/auth/register'
+
+            response = requests.post(completeUrl, headers=headers, json=data)
+            logging.debug(f'response {response} test {response.text}')
+
+            if response.status_code == 200:
+                res =  response.json()
+                logging.debug(f'res {res}')
+                accessToken = res['accessToken']
+            else:
+                return(None)
+            logging.debug(f'AccessToken {accessToken}')
+            return(accessToken)   
+        except Exception as e:
+            logging.debug(f'exception {e}')
+            return(None)
 
 
     def start(self):
         site_string = ''
-        logging.debug('start SPAN:{}'.format(self.TPW_cloud))
+        assigned_addresses = []
+        logging.debug('start SPAN')
         #logging.debug('start 1 : {}'.format(self.TPW_cloud._oauthTokens))
-        self.poly.updateProfile()
+
         #logging.debug('start 2 : {}'.format(self.TPW_cloud._oauthTokens))
         #while not self.customParam_done or not self.TPW_cloud.customNsHandlerDone or not self.TPW_cloud.customDataHandlerDone:
         while not self.customParam_done or not self.config_done:
@@ -118,17 +178,29 @@ class SPANController(udi_interface.Node):
             time.sleep(1)
         #logging.debug('access {} {}'.format(self.local_access_enabled, self.cloud_access_enabled))
         
-        for indx, ipadr in enumerate(self.span_ip_list):
-            self.span_panel[indx]= SpanAccess(ipadr)    
-            nodename = ipadr
-            address = self.poly.getValidAddress(nodename)  
-            udiSpanPanelNode(self.poly, address, address, nodename, self.span_panel[indx])    
-
-        if self.cloudAccessUp or self.localAccessUp:            
-            #logging.debug('start 3: {}'.format(self.TPW_cloud._oauthTokens))
-            self.longPoll()
-        else:
-            self.poly.Notices['cfg'] = 'Tesla PowerWall NS needs configuration and/or LOCAL_EMAIL, LOCAL_PASSWORD, LOCAL_IP_ADDRESS'
+        for indx, IPaddress in enumerate(self.span_ip_list):
+            #self.span_panel[indx]= SpanAccess(IPaddress)    
+            token = None
+            nodename = IPaddress
+            address = self.poly.getValidAddress(nodename)
+            if IPaddress in self.customData.keys():
+                token = self.customData[IPaddress]
+            else:
+                while token == None:
+                    token = self.registerSpanPanel(IPaddress)
+                    if token != None:
+                        self.customData[IPaddress]= token
+                    else:
+                        self.poly.Notices['panel'] = 'Click Span Panel door switch 3 times to register Panels'
+                        time.sleep(10)
+            self.poly.Notices.clear()
+    
+            self.span_panel[indx] = udiSpanPanelNode(self.poly, address, address, nodename, IPaddress, token)    
+            # need to retrieve unique ID and Token and store in customData          
+            
+  
+            assigned_addresses.append(address)
+     
         
         while not self.config_done:
             time.sleep(5)
@@ -147,149 +219,7 @@ class SPANController(udi_interface.Node):
     #def handleNotices(self):
     #    logging.debug('handleNotices')
 
-    def tesla_initialize(self):
-        logging.debug('starting Login process')
-        try:
-            logging.debug('localAccess:{}, cloudAccess:{}'.format(self.localAccess, self.cloudAccess))
-
-            #self.TPW = tesla_info(self.my_Tesla_PW )
-            #self.TPW = teslaAccess() #self.name, self.address, self.localAccess, self.cloudAccess)
-            #self.localAccess = self.TPW.localAccess()
-            #self.cloudAccess = self.TPW.cloudAccess()
-            logging.debug('tesla_initialize 1 : {}'.format(self.my_Tesla_PW._oauthTokens))
-            if self.cloudAccess:
-                logging.debug('Attempting to log in via cloud auth')
-
-                if self.my_Tesla_PW.authendicated():
-                    self.cloudAccessUp = True
-                else:
-                    self.cloudAccessUp =  self.my_Tesla_PW.test_authendication()
-
-                while  not  self.cloudAccessUp:
-                    time.sleep(5)
-                    logging.info('Waiting to authenticate to complete - press authenticate button')   
-                    self.cloudAccessUp =  self.my_Tesla_PW.test_authendication()
-    
-                #logging.debug('local loging - accessUP {}'.format(self.localAccessUp ))
-                self.poly.Notices.clear()
-
-                logging.debug('finished login procedures' )
-                logging.info('Creating Nodes')
-            
-                self.PWs = self.my_Tesla_PW.tesla_get_products()
-                logging.debug('self.PWs {}'.format(self.PWs))
-                logging.debug('tesla_initialize 2 : {}'.format(self.my_Tesla_PW._oauthTokens))
-                for site_id in self.PWs:
-                    string = str(self.PWs[site_id]['energy_site_id'])
-                    #logging.debug(string)
-                    string = string[-14:]
-                    #logging.debug(string)
-                    node_address =  self.poly.getValidAddress(string)
-                    #logging.debug(string)
-                    string = self.PWs[site_id]['site_name']
-                    #logging.debug(string)
-                    node_name = self.poly.getValidName(string)
-                    #logging.debug(string)
-                    logging.debug('tesla_initialize 3 : {}'.format(self.my_Tesla_PW._oauthTokens))
-                    self.TPW = tesla_info(self.TPW_cloud)
-                    teslaPWStatusNode(self.poly, node_address, node_address, node_name, self.TPW , site_id)
-                    logging.debug('tesla_initialize 4 : {}'.format(self.my_Tesla_PW._oauthTokens))
-                    #self.wait_for_node_done()
-
-            else:
-                logging.info('Cloud Acces not enabled')
-            '''
-            if self.localAccess:
-                logging.debug('Attempting to log in via local auth')
-                try:
-                    self.poly.Notices['localPW'] = 'Tesla PowerWall may need to be turned OFF and back ON to allow loacal access'
-                    #self.localAccessUp  = self.TPW.loginLocal(local_email, local_password, local_ip)
-                    self.localAccessUp  = self.TPW.loginLocal()
-                    count = 1
-                    while not self.localAccessUp and count < 5:
-                        time.sleep(1)
-                        self.localAccessUp  = self.TPW.loginLocal()
-                        count = count +1
-                        logging.info('Waiting for local system access to be established')
-                    if not  self.localAccessUp:
-                        logging.error('Failed to establish local access - check email, password and IP address')   
-                        return
-                    logging.debug('local loging - accessUP {}'.format(self.localAccessUp ))
-
-                except:
-                    logging.error('local authenticated failed.')
-                    self.localAccess = False
-            '''
-                
- 
-            
-            '''
-            node addresses:
-               setup node:            pwsetup 'Control Parameters'
-               main status node:      pwstatus 'Power Wall Status'
-               generator status node: genstatus 'Generator Status'
-               
-            
-
-            if not self.poly.getNode('pwstatus'):
-                node = teslaPWNode(self.poly, self.address, 'pwstatus', 'Power Wall Status', self.TPW, site_id)
-                self.poly.addNode(node)
-                self.wait_for_node_done()
-
-            if self.TPW.solarInstalled:
-                if not self.poly.getNode('solarstatus'):
-                    node = teslaPWSolarNode(self.poly, self.address, 'solarstatus', 'Solar Status', self.TPW)
-                    self.poly.addNode(node)
-                    self.wait_for_node_done()
-            else:
-                temp = self.poly.getNode('solarstatus')
-                if temp:
-                    self.poly.delNode(temp)
-
-
-            if self.TPW.generatorInstalled:
-                if not self.poly.getNode('genstatus'):
-                    node = teslaPWGenNode(self.poly, self.address, 'genstatus', 'Generator Status', self.TPW)
-                    self.poly.addNode(node)
-                    self.wait_for_node_done()
-            else:
-                temp = self.poly.getNode('genstatus')
-                if temp:
-                    self.poly.delNode(temp)
-        
-            if self.cloudAccess:
-                if not self.poly.getNode('pwsetup'):
-                    node = teslaPWSetupNode(self.poly, self.address, 'pwsetup', 'Control Parameters', self.TPW)
-                    self.poly.addNode(node)
-                    self.wait_for_node_done()
-            else:
-                self.poly.delNode('pwsetup')
-            '''
-            logging.debug('Node installation complete')
-            self.initialized = True
-            self.longPoll()
-            self.nodeDefineDone = True
-            
-            
-        except Exception as e:
-            logging.error('Exception Controller start: '+ str(e))
-            logging.info('Did not connect to power wall')
-
-        #self.TPW.systemReady = True
-        logging.debug ('Controller - initialization done')
-
-    def handleLevelChange(self, level):
-        logging.info('New log level: {}'.format(level))
-
-    def handleNotices(self, level):
-        logging.info('handleNotices:')
-
-
-    def addNodeDoneHandler(self, node):
-        pass
-        # We will automatically query the device after discovery
-        #controller.addNodeDoneHandler(node)
-
+   
 
     def stop(self):
         #self.removeNoticesAll()
@@ -352,7 +282,8 @@ class SPANController(udi_interface.Node):
     
 
     def updateISYdrivers(self):
-        logging.debug('System updateISYdrivers - ')       
+        logging.debug('System updateISYdrivers')       
+        
         '''
         #value = self.TPW_cloud.authenticated()
         #if value == 0:
@@ -381,7 +312,7 @@ class SPANController(udi_interface.Node):
 
         '''
         
-    def update_PW_data(self, site_id, level):
+    def update_data(self, site_id, level):
         pass   
 
     def ISYupdate (self, command):
@@ -393,38 +324,20 @@ class SPANController(udi_interface.Node):
     commands = { 'UPDATE': ISYupdate }
     drivers = [
             {'driver': 'ST', 'value':0, 'uom':25},
-            {'driver': 'GV2', 'value':0, 'uom':25},
-            {'driver': 'GV3', 'value':99, 'uom':25},
-            {'driver': 'GV4', 'value':0, 'uom':25},
+            {'driver': 'GV1', 'value':0, 'uom':25},
             ]
 
 if __name__ == "__main__":
     try:
-        #logging.info('Starting Tesla Power Wall Controller')
+        logging.info('Starting Span Power Panel Controller')
         polyglot = udi_interface.Interface([])
         polyglot.start(VERSION)
         #polyglot.updateProfile()
-        polyglot.setCustomParamsDoc()
-
-
-        SPAN =SPANController(polyglot, 'controller', 'controller', 'SPAN Panels')
-        #polyglot.addNode(TPW)
-        
-        logging.debug('before subscribe')
-        polyglot.subscribe(polyglot.STOP, SPAN.stop)
-        polyglot.subscribe(polyglot.CUSTOMPARAMS, SPAN.customParamsHandler)
-        polyglot.subscribe(polyglot.CUSTOMDATA, None) 
-        polyglot.subscribe(polyglot.CONFIGDONE, SPAN.configDoneHandler)
-        #polyglot.subscribe(polyglot.ADDNODEDONE, TPW.node_queue)        
-        polyglot.subscribe(polyglot.LOGLEVEL, SPAN.handleLevelChange)
-        polyglot.subscribe(polyglot.NOTICES, SPAN.handleNotices)
-        polyglot.subscribe(polyglot.POLL, SPAN.systemPoll)
-        polyglot.subscribe(polyglot.START, SPAN.start, 'controller')
-        logging.debug('Calling start')
-        polyglot.subscribe(polyglot.CUSTOMNS, SPAN.customNsHandler)
-        #polyglot.subscribe(polyglot.OAUTH, TPW_cloud.oauthHandler)
-        logging.debug('after subscribe')
+        #polyglot.setCustomParamsDoc()
         polyglot.ready()
+        logging.debug('after subscribe')
+        SPANController(polyglot, 'controller', 'controller', 'SPANIO panels')
+
         polyglot.runForever()
     except (KeyboardInterrupt, SystemExit):
         sys.exit(0)

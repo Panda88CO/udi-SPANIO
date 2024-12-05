@@ -18,6 +18,11 @@ from os import truncate
 import time
 import math
 import numbers 
+import random, string
+
+def random_string(self, length):
+    x = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(length))
+    return(x)
 
 def node_queue(self, data):
     #logging.debug('node_queue {}'.format(data))
