@@ -40,7 +40,7 @@ class SpanAccess(object):
         logging.debug(f'getSpanCircuitsInfo ({self.IP_address})')        
         code, circuits = self._callApi('GET', '/circuits')
         if code == 200:
-            return(code, circuits['spaces'])
+            return(code, circuits['circuits'])
         else:
             return(code, circuits)
     
