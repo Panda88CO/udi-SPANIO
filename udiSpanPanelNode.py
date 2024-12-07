@@ -45,7 +45,7 @@ class udiSpanPanelNode(udi_interface.Node):
         self.circuit_access = {}
         
     def start(self):   
-        logging.debug('Start Tesla Power Wall Status Node')
+        logging.debug('StartSpanIO Panel Node')
         #self.TPW = tesla_info(self.my_TeslaPW, self.site_id)
         logging.info('Adding power wall sub-nodes')
         self.span_panel = SpanAccess(self.span_ipadr, self.token)
@@ -59,7 +59,7 @@ class udiSpanPanelNode(udi_interface.Node):
         logging.debug(f'Panel {self.span_ipadr} Circuits info: {code} , {self.circuits }')            
         if code == 200:
             for circuit in self.circuits:
-                logging.debug(f'adding circuit {circuit} = {self.circuits[circuit]['name']}')
+                logging.debug('adding circuit {} = {}'.format(circuit,self.circuits[circuit]['name'] ))
                 nodeaddress  = self.poly.getValidAddress(circuit)
                 nodename = self.poly.getValidName(self.circuits[circuit]['name'])
                 self.circuit_access[circuit] = udiSpanCircuitNode(self.poly, self.panel_node_adr, nodeaddress, nodename, str(circuit) )

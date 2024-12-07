@@ -16,7 +16,7 @@ except ImportError:
     logging.basicConfig(level=30)
 
 
-VERSION = '0.0.2'
+VERSION = '0.0.3'
 class SPANController(udi_interface.Node):
     from  udiLib import node_queue, wait_for_node_done, random_string, mask2key, heartbeat, bool2ISY, my_setDriver
 
@@ -54,27 +54,26 @@ class SPANController(udi_interface.Node):
         polyglot.subscribe(polyglot.NOTICES, self.handleNotices)
         polyglot.subscribe(polyglot.POLL, self.systemPoll)
 
-        #polyglot.subscribe(polyglot.OAUTH, TPW_cloud.oauthHandler)
 
         logging.debug('self.address : ' + str(self.address))
         logging.debug('self.name :' + str(self.name))
         self.hb = 0
 
-        self.poly.Notices.clear()
+        polyglot.Notices.clear()
         self.nodeDefineDone = False
         self.longPollCountMissed = 0
-
+        polyglot.ready()
         logging.debug('Controller init DONE')
         
-        self.poly.addNode(self)
+        polyglot.addNode(self)
         self.wait_for_node_done()
-        #self.poly.updateProfile()
-        self.node = self.poly.getNode(self.address)
+        
+        self.node = polyglot.getNode(self.address)
         logging.debug('Node info: {}'.format(self.node))
         self.my_setDriver('ST', 1)
         logging.debug('Calling start')       
         polyglot.subscribe(polyglot.START, self.start, 'controller')
-        self.poly.updateProfile()
+        polyglot.updateProfile()
         logging.debug('finish Init ')
         
 
@@ -191,6 +190,7 @@ class SPANController(udi_interface.Node):
                 token = self.customData[IPaddress]
             else:
                 while token == None:
+                    logging.debug(f'Add panel {IPaddress}  {uid}')
                     token = self.registerSpanPanel(IPaddress, uid)
                     if token != None:
                         self.customData[IPaddress]= token
@@ -337,9 +337,8 @@ if __name__ == "__main__":
         polyglot.start(VERSION)
         #polyglot.updateProfile()
         #polyglot.setCustomParamsDoc()
-        polyglot.ready()
-        logging.debug('after subscribe')
-        SPANController(polyglot, 'controller', 'controller', 'SPANIO panels')
+        #polyglot.ready()
+        SPANController(polyglot, 'controller', 'controller', 'SPANIO')
 
         polyglot.runForever()
     except (KeyboardInterrupt, SystemExit):
