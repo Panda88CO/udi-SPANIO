@@ -25,7 +25,22 @@ ND-spancircuit-ICON = EnergyMonitor
 ST-nlsspanpanel-GV0-NAME = Circuit Breaker (relay)
 
 
+PRIORITY-0 = Must Have
+PRIORITY-1 = Nice to Have
+PRIORITY-2 = Not Essential
+PRIORITY-99 = Unknown
 
+OPENCLOSE-0 = Closed
+OPENCLOSE-1 = Open
+OPENCLOSE-99 = Unknown
+
+GRIDSTATE-0 = DSM_GRID_UP
+GRIDSTATE-1 = DSM_GRID_DOWN
+GRIDSTATE-99 = Unknown
+
+GRIDSTATUS-0 = ON_GRID
+GRIDSTATUS-1 = OFF_GRID
+GRIDSTATUS-99 = Unknown
 
 
 PERIOD-0 = Off-peak

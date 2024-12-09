@@ -26,8 +26,179 @@ class SpanAccess(object):
         self.CIRCUITS    = '/circuits'
         self.PANEL       = '/panel'
         self.REGISTER    = '/register'
+        self.span_data = {}
 
 
+    def update_panel_status(self):
+        try:
+            code, status = self.getSpanStatusInfo()
+            if code == 200:
+                self.span_data['status'] = status                
+                return(ConnectionAbortedError)
+            else:
+                self.span_data['status'] = None
+            return(code)
+        except Exception as e:
+            logging.error(f'EXCEPTION: update_panel_status: {e}')
+            return(None)
+
+    def update_panel_info(self):
+        try:
+            code, panel = self.getSpanPanelInfo()
+            if code == 200:
+               self.span_data['panel_info'] = panel
+            else:
+                self.span_data['panel_info'] = None
+            return(code )
+        except Exception as e:
+            logging.error(f'EXCEPTION: update_panel_info: {e}')
+            return(None)
+
+    def update_battery_info(self):
+        try:
+            code, battery = self.getSpanBatteryInfo()
+            if code == 200:
+               self.span_data['battery_info'] = battery
+            else:
+                self.span_data['battery_info'] = None
+            return(code )
+        except Exception as e:
+            logging.error(f'EXCEPTION: update_battery_info: {e}')
+            return(None)
+        
+
+    def update_circuit_info(self):
+        try:
+            code, circuits = self.getSpanCircuitsInfo()
+            if code == 200:
+               self.span_data['circuit_info'] = circuits
+            else:
+                self.span_data['circuit_info'] =  None
+            return(code )
+        except Exception as e:
+            logging.error(f'EXCEPTION: update_battery_info: {e}')
+            return(None)
+                
+    def update_panel_breaker_info(self, breaker_id):
+        try:
+            code, breaker_info = self.getSpanBreakerInfo(breaker_id)
+            if code == 200:
+               self.span_data['circuit_info'][breaker_id] = breaker_info
+            else:
+                self.span_data['circuit_info'][breaker_id]  = None
+            return(code )
+        except Exception as e:
+            logging.error(f'EXCEPTION: update_panel_breaker_info: {e}')
+            return(None)
+
+    def update_span_data(self):
+        logging.debug(f'updateSpanData ({self.IP_address})')
+        self.update_panel_status()
+        self.update_panel_info()     
+        self.update_battery_info()
+        self.update_circuit_info()        
+
+
+    def get_panel_door_state(self):
+        logging.debug('get_panel_door_state')
+        try:
+            return(self.span_data['status']['doorState'])
+        except Exception as e:
+            return(None)
+        
+
+    def get_battery_percentage(self):
+        logging.debug('get_battery_percentage')
+        try:
+            return(self.span_data['battery_info']['soe']['percentage'])
+        except Exception as e:
+            return(None)
+
+
+    def get_main_panel_breaker_state(self):
+        logging.debug('get_main_panel_breaker_state')
+        try:
+            return(self.span_data['panel_info']['mainRelayState'])
+        except Exception as e:
+            return(None)    
+
+
+    def get_grid_state(self):
+        logging.debug('get_grid_state')
+        try:
+            return(self.span_data['panel_info']['dsmGridState'])
+        except Exception as e:
+            return(None)    
+
+
+    def get_dms_state(self):        
+        logging.debug('get_dms_state')
+        try:
+            return(self.span_data['panel_info']['dsmState'])
+        except Exception as e:
+            return(None)    
+
+
+    def get_dms_run_config(self):    
+        logging.debug('get_dms_run_config')
+        try:
+            return(self.span_data['panel_info']['currentRunConfig'])
+        except Exception as e:
+            return(None)    
+
+
+    def get_instant_grid_power(self):         
+        logging.debug('get_instant_grid_power')
+        try:
+            return(self.span_data['panel_info']['instantGridPowerW'])
+        except Exception as e:
+            return(None)    
+
+    def get_feedthrough_power(self):              
+        logging.debug('get_feedthrough_power')
+        try:
+            return(self.span_data['panel_info']['feedthroughPowerW'] )
+        except Exception as e:
+            return(None)    
+
+
+    def get_breaker_state(self, breaker_id):
+        logging.debug(f'get_breaker_state {breaker_id}')
+        try:
+            return(self.span_data['circuit_info'][breaker_id]['relayState'] )
+        except Exception as e:
+            return(None)    
+
+    def get_breaker_priority(self, breaker_id):
+        logging.debug(f'get_breaker_state {breaker_id}')
+        try:
+            return(self.span_data['circuit_info'][breaker_id]['priority'] )
+        except Exception as e:
+            return(None)    
+
+
+    def get_breaker_instant_power(self, breaker_id):
+        logging.debug(f'get_breaker_instant_power {breaker_id}')
+        try:
+            pwr = self.span_data['circuit_info'][breaker_id]['instantPowerW']
+            delay_time = int(time.time() -self.span_data['circuit_info'][breaker_id]['instantPowerUpdateTimeS'])
+            return(pwr,  delay_time )
+        except Exception as e:
+            return(None)    
+
+    def get_breaker_energy_info(self, breaker_id):
+        logging.debug(f'get_breaker_energy_info {breaker_id}')
+        try:
+            produced_energy =  self.span_data['circuit_info'][breaker_id]['producedEnergyWh']
+            consumed_energy = self.span_data['circuit_info'][breaker_id]['consumedEnergyWh'] 
+            delay_time = int(time.time() -self.span_data['circuit_info'][breaker_id]['energyAccumUpdateTimeS'])
+            return(produced_energy, consumed_energy, delay_time)
+        except Exception as e:
+            return(None)    
+
+       
+
+############################
 
     def getAccessToken(self):
         logging.debug(f'getAccessToken ({self.IP_address})')        
@@ -72,25 +243,8 @@ class SpanAccess(object):
         return(code, clients)
 
 
-    '''
-    def registerSpanPanel(self, force=False):
-        logging.debug(f'registerSpanPanel ({self.IP_address})')
-        try:
-            if self.getAccessToken() == None or force:
-                
-                data ={
-                    'name':'udiSPAN-'+self.random_string(10),
-                    'description':'UDI integration of SpanIO panels'
-                }
-                code, panel = self._callApi('POST', '/auth/clients/register', data)
-                if 'accessToken' in panel:
-                    self.accessToken = panel['accessToken']
-                else:
-                    return(None)
-            return(self.accessToken)   
-        except Exception as e:
-            return(None)
-    '''         
+
+  
 
 
     def _callApi(self, method='GET', url=None, body=None):

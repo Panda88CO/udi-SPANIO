@@ -13,14 +13,14 @@ except ImportError:
 
 
 class udiSpanCircuitNode(udi_interface.Node):
-    from  udiLib import node_queue, wait_for_node_done, mask2key, bool2ISY, round2ISY, my_setDriver
+    from  udiLib import node_queue, wait_for_node_done, openClose2ISY, priority2ISY, mask2key, bool2ISY, round2ISY, my_setDriver
 
-    def __init__(self, polyglot, primary, address, name, span_access):
+    def __init__(self, polyglot, primary, address, name, span_access, circuit):
         #super(teslaPWStatusNode, self).__init__(polyglot, primary, address, name)
         logging.info(f'_init_ Span Circuit Node {name}')
         self.poly = polyglot
-        self.span = span_access
-
+        self.span_panel = span_access
+        self.circuit = circuit
 
         self.node_ok = False
         self.address = address
@@ -34,24 +34,17 @@ class udiSpanCircuitNode(udi_interface.Node):
         self.poly.addNode(self)
         self.wait_for_node_done()
         self.node = self.poly.getNode(address)
-        #self.TPW = tesla_info(self.my_TeslaPW, self.site_id)
-        #self.TPW.tesla_get_site_info(self.site_id)
-        #self.TPW.tesla_get_live_status(self.site_id)
+
         
-        #polyglot.subscribe(polyglot.START, self.start, address)
+
         
     def start(self):   
-        logging.debug('Start Tesla Power Wall Status Node')
-        #self.TPW = tesla_info(self.my_TeslaPW, self.site_id)
-        logging.info('Adding power wall sub-nodes')
+        logging.debug(f'Start Span Circuit node {self.name}')
 
-        sub_adr = self.primary[-8:]
-        #if self.TPW.cloud_access_enabled():
-        
-  
-
-
+        self.circuit_data = self.span_panel.getSpanBreakerInfo(self.circuit )
         self.updateISYdrivers()
+        
+        
         self.node_ok = True
 
     def stop(self):
@@ -62,118 +55,72 @@ class udiSpanCircuitNode(udi_interface.Node):
 
 
 
+    def update_data(self):
+        code = self.span_panel.update_panel_breaker_info(self.circuit )
 
     def updateISYdrivers(self):
-
-
-        logging.debug('StatusNode updateISYdrivers')
-        '''
-        #tmp = self.TPW.getTPW_backup_time_remaining()
-        #logging.debug('GV0: {}'.format(tmp))
-        self.my_setDriver('ST', self.bool2ISY(self.TPW.getTPW_onLine()))
-        self.my_setDriver('GV0', self.round2ISY(self.TPW.getTPW_chargeLevel(self.site_id),1), 51)
-        self.my_setDriver('GV1', self.round2ISY(self.TPW.getTPW_solarSupply(self.site_id),2), 30)
-        self.my_setDriver('GV2', self.round2ISY(self.TPW.getTPW_batterySupply(self.site_id),2), 30)
-        self.my_setDriver('GV3', self.round2ISY(self.TPW.getTPW_load(self.site_id),2), 30)
-        self.my_setDriver('GV4', self.round2ISY(self.TPW.getTPW_gridSupply(self.site_id),2), 30)
-                
-        self.my_setDriver('GV5', self.TPW.getTPW_operationMode(self.site_id))
-        self.my_setDriver('GV6', self.TPW.getTPW_gridStatus(self.site_id))
-        self.my_setDriver('GV7', self.TPW.getTPW_gridServiceActive(self.site_id))
-
-        self.my_setDriver('GV8', self.round2ISY(self.TPW.getTPW_daysConsumption(self.site_id),2), 33)
-        self.my_setDriver('GV9', self.round2ISY(self.TPW.getTPW_daysSolar(self.site_id),2), 33)
-        self.my_setDriver('GV10', self.round2ISY(self.TPW.getTPW_daysBattery_export(self.site_id),2), 33)       
-        self.my_setDriver('GV11', self.round2ISY(self.TPW.getTPW_daysBattery_import(self.site_id),2), 33)
-        self.my_setDriver('GV12', self.round2ISY(self.TPW.getTPW_daysGrid_export(self.site_id),2), 33) 
-        self.my_setDriver('GV13', self.round2ISY(self.TPW.getTPW_daysGrid_import(self.site_id),2), 33)
-        self.my_setDriver('GV14', self.round2ISY(self.TPW.getTPW_daysGrid_export(self.site_id)- self.TPW.getTPW_daysGrid_import(self.site_id) ,2), 33)
-
-
-        #self.my_setDriver('GV29', self.round2ISY(self.TPW.getTPW_daysGrid_import(self.site_id) - self.TPW.getTPW_daysGrid_export(self.site_id),2), 33)
-        self.my_setDriver('GV28', self.round2ISY(self.TPW.getTPW_daysGeneratorUse(self.site_id),2), 33)
-        '''
-    '''
-    def update_PW_data(self, site_id, level):
-        self.TPW.pollSystemData(site_id, level) 
-    '''
+        logging.debug(f'SpanCircuit updateISYdrivers {self.name}')
+        logging.debug(f'data: {self.span_panel.span_data}')
+        self.my_setDriver('ST', self.openClose2ISY(self.span_panel.get_breaker_state(self.circuit)))
+        self.my_setDriver('GV1', self.priority2ISY(self.span_panel.get_breaker_priority(self.circuit)))
+        pwr, delay_time = self.span_panel.get_breaker_instant_power(self.circuit)
+        self.my_setDriver('GV2', pwr)
+        self.my_setDriver('GV4', delay_time)  # Needs to be updated
+        imp_wh, exp_wh, delay_time = self.span_panel.get_breaker_energy_info(self.circuit)
+        self.my_setDriver('GV5', imp_wh ) 
+        self.my_setDriver('GV6', exp_wh )     
+        self.my_setDriver('GV7', 0 ) # Needs to be updated
+        self.my_setDriver('GV8', 0 )  # Needs to be updated      
+        self.my_setDriver('GV9', delay_time )  
 
     def ISYupdate (self, command):
         logging.debug('ISY-update called')
         #self.update_PW_data(self.site_id, 'all')
-        self.TPW.pollSystemData(self.site_id, 'all') 
+        self.update_data()
         self.updateISYdrivers()
 
- 
+    def set_breaker(self, command):
+        logging.debug(f'set_breaker called: {command}')
 
-    id = 'pwstatus'
-    commands = { 'UPDATE': ISYupdate, 
+
+    def set_priority(self, command):
+        logging.debug(f'set_priority called: {command}')
+   
+
+    id = 'spancircuit'
+    commands = {    
+                'UPDATE'    : ISYupdate, 
+                'OPENCLOSE' : set_breaker,
+                'PRIORITY'  : set_priority
                 }
     '''
-    ST-nlspwstatus-ST-NAME = Connected to Tesla
-    ST-nlspwstatus-GV0-NAME = Remaining Battery 
-    ST-nlspwstatus-GV1-NAME = Inst Solar Export
-    ST-nlspwstatus-GV2-NAME = Inst Battery Export
-    ST-nlspwstatus-GV3-NAME = Inst Home Load
-    ST-nlspwstatus-GV4-NAME = Inst Grid Import
+        <st id="ST" editor="OPENCLOSE" /> breaker
+        <st id="GV1" editor="PRIORITY" /> priority
+        <st id="GV2" editor="KW" /> inst Power
 
-    ST-nlspwstatus-GV5-NAME = Operation Mode
-    ST-nlspwstatus-GV6-NAME = Grid Status
-    ST-nlspwstatus-GV7-NAME = Grid Services Active
-
-    ST-nlspwstatus-GV8-NAME = Home Total Use Today
-    ST-nlspwstatus-GV9-NAME = Solar Export Today
-    ST-nlspwstatus-GV10-NAME = Battery Export Today
-    ST-nlspwstatus-GV11-NAME = Battery Import Today
-    ST-nlspwstatus-GV12-NAME = Grid Import Today
-    ST-nlspwstatus-GV13-NAME = Grid Export Today
-    ST-nlspwstatus-GV14-NAME = Grid Service Today
-
-    ST-nlspwstatus-GV15-NAME = Home Total Use Yesterday
-    ST-nlspwstatus-GV16-NAME = Solar Export Yesterday
-    ST-nlspwstatus-GV17-NAME = Battery Export Yesterday
-    ST-nlspwstatus-GV18-NAME = Battery Import Yesterday
-    ST-nlspwstatus-GV19-NAME = Grid Export Yesterday
-    ST-nlspwstatus-GV20-NAME = Grid Import Yesterday
-    ST-nlspwstatus-GV21-NAME = Grid Service Yesterday
-
-    ST-nlspwstatus-GV22-NAME = Today nbr backup events 
-    ST-nlspwstatus-GV23-NAME = Today backup event time
-    ST-nlspwstatus-GV24-NAME = Yesterday nbr backup events 
-    ST-nlspwstatus-GV25-NAME = Yesterday backup event time
-    ST-nlspwstatus-GV26-NAME = Today charge power
-    ST-nlspwstatus-GV27-NAME = Today charge time
-    ST-nlspwstatus-GV28-NAME = Yesterday charge power
-    ST-nlspwstatus-GV29-NAME = Yesterday charge time
-
+        <st id="GV4" editor="SECS" /> Time sinse result (sec)
+        <st id="GV5" editor="KWH" /> Imported Energy
+        <st id="GV6" editor="KWH" />  Exported energy
+        <st id="GV7" editor="KWH" /> energy / hour
+        <st id="GV8" editor="KWH" />  energy / day       
+        <st id="GV9" editor="SECS" />  Time since result (sec)
     '''
 
     drivers = [
             {'driver': 'ST', 'value': 99, 'uom': 25},  #online         
-            {'driver': 'GV0', 'value': 0, 'uom': 51},       
-            {'driver': 'GV1', 'value': 0, 'uom': 33},
-            {'driver': 'GV2', 'value': 0, 'uom': 33},  
-            {'driver': 'GV3', 'value': 0, 'uom': 33}, 
-            {'driver': 'GV4', 'value': 0, 'uom': 33},  
+            #{'driver': 'GV0', 'value': 0, 'uom': 51},       
+            {'driver': 'GV1', 'value': 0, 'uom': 25},
+            {'driver': 'GV2', 'value': 0, 'uom': 30},  
+            #{'driver': 'GV3', 'value': 0, 'uom': 57}, 
+            {'driver': 'GV4', 'value': 0, 'uom': 57},  
 
-            {'driver': 'GV5', 'value': 99, 'uom': 25},  
-            {'driver': 'GV6', 'value': 99, 'uom': 25},  
-            {'driver': 'GV7', 'value': 99, 'uom': 25},  
+            {'driver': 'GV5', 'value': 99, 'uom': 33},  
+            {'driver': 'GV6', 'value': 99, 'uom': 33},  
+            {'driver': 'GV7', 'value': 99, 'uom': 33},  
+            {'driver': 'GV8', 'value': 99, 'uom': 33}, 
 
-            {'driver': 'GV29', 'value': 99, 'uom': 25}, 
-            {'driver': 'GV8', 'value': 99, 'uom': 25}, 
+            {'driver': 'GV9', 'value': 0, 'uom': 57},           
 
-            {'driver': 'GV9', 'value': 0, 'uom': 33}, 
-            {'driver': 'GV10', 'value': 0, 'uom': 33},  
-            {'driver': 'GV11', 'value': 0, 'uom': 33},  
-            {'driver': 'GV12', 'value': 0, 'uom': 33},
-            {'driver': 'GV13', 'value': 0, 'uom': 33}, 
-            {'driver': 'GV14', 'value': 0, 'uom': 33}, 
-
-            {'driver': 'GV28', 'value': 0, 'uom': 33},
-            
-   
-                     
             ]
 
     

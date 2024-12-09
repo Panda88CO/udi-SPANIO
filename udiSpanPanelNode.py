@@ -14,7 +14,7 @@ except ImportError:
 
 
 class udiSpanPanelNode(udi_interface.Node):
-    from  udiLib import node_queue, wait_for_node_done, mask2key, bool2ISY, round2ISY, my_setDriver
+    from  udiLib import node_queue, wait_for_node_done,openClose2ISY, priority2ISY, mask2key, bool2ISY, round2ISY, my_setDriver
 
     def __init__(self, polyglot, primary, address, name, span_ipadr, token):
         #super(teslaPWStatusNode, self).__init__(polyglot, primary, address, name)
@@ -49,23 +49,30 @@ class udiSpanPanelNode(udi_interface.Node):
         #self.TPW = tesla_info(self.my_TeslaPW, self.site_id)
         logging.info('Adding power wall sub-nodes')
         self.span_panel = SpanAccess(self.span_ipadr, self.token)
-        code, self.panel = self.span_panel.getSpanPanelInfo()
-        logging.debug(f'Panel {self.span_ipadr} info: {code} , {self.panel}')
-        code, self.battery_info = self.span_panel.getSpanBatteryInfo()
-        logging.debug(f'Panel {self.span_ipadr} Battery info: {code} , {self.battery_info}')        
-        code, self.panel_status = self.span_panel.getSpanStatusInfo()
-        logging.debug(f'Panel {self.span_ipadr} Status info: {code} , {self.panel_status }')        
+        self.update_data()        
+        self.create_subnodes()
+        self.update_data()
+        self.updateISYdrivers()
+        self.node_ok = True
+
+
+    def create_subnodes(self):
+        logging.debug(f'create_subnodes - {self.name}')
         code, self.circuits = self.span_panel.getSpanCircuitsInfo()
         logging.debug(f'Panel {self.span_ipadr} Circuits info: {code} , {self.circuits }')            
         if code == 200:
             for circuit in self.circuits:
                 logging.debug('adding circuit {} = {}'.format(circuit,self.circuits[circuit]['name'] ))
-                nodeaddress  = self.poly.getValidAddress(circuit)
+                circuitADR = circuit[-14:]
+                nodeaddress  = self.poly.getValidAddress(circuitADR)
                 nodename = self.poly.getValidName(self.circuits[circuit]['name'])
-                self.circuit_access[circuit] = udiSpanCircuitNode(self.poly, self.panel_node_adr, nodeaddress, nodename, str(circuit) )
-
-        self.updateISYdrivers()
-        self.node_ok = True
+                self.circuit_access[circuit] = udiSpanCircuitNode(self.poly, self.panel_node_adr, nodeaddress, nodename, self.span_panel, str(circuit))
+                                                                
+    
+    
+    def update_data(self):
+        self.span_panel.update_span_data()
+                 
 
     def stop(self):
         logging.debug('stop - Cleaning up')
@@ -77,60 +84,40 @@ class udiSpanPanelNode(udi_interface.Node):
 
 
     def updateISYdrivers(self):
+        logging.debug('Span Panel updateISYdrivers')
+        logging.debug(f'data: {self.span_panel.span_data}')
+        self.my_setDriver('ST', self.openClose2ISY(self.span_panel.get_main_panel_breaker_state()))
+        self.my_setDriver('GV0', self.openClose2ISY(self.span_panel.get_panel_door_state()))
+        self.my_setDriver('GV1', self.get_instant_grid_power())
+        self.my_setDriver('GV2', self.get_feedthrough_power())
+        self.my_setDriver('GV3', 0 ) # Needs to be updated
+        self.my_setDriver('GV4', 0 )  # Needs to be updated      
+        self.my_setDriver('GV7', self.get_battery_percentage() )  # Needs to be updated      
 
-
-        logging.debug('StatusNode updateISYdrivers')
-        '''
-        #tmp = self.TPW.getTPW_backup_time_remaining()
-        #logging.debug('GV0: {}'.format(tmp))
-        self.my_setDriver('ST', self.bool2ISY(self.TPW.getTPW_onLine()))
-        self.my_setDriver('GV0', self.round2ISY(self.TPW.getTPW_chargeLevel(self.site_id),1), 51)
-        self.my_setDriver('GV1', self.round2ISY(self.TPW.getTPW_solarSupply(self.site_id),2), 30)
-        self.my_setDriver('GV2', self.round2ISY(self.TPW.getTPW_batterySupply(self.site_id),2), 30)
-        self.my_setDriver('GV3', self.round2ISY(self.TPW.getTPW_load(self.site_id),2), 30)
-        self.my_setDriver('GV4', self.round2ISY(self.TPW.getTPW_gridSupply(self.site_id),2), 30)
-                
-        self.my_setDriver('GV5', self.TPW.getTPW_operationMode(self.site_id))
-        self.my_setDriver('GV6', self.TPW.getTPW_gridStatus(self.site_id))
-        self.my_setDriver('GV7', self.TPW.getTPW_gridServiceActive(self.site_id))
-
-        self.my_setDriver('GV8', self.round2ISY(self.TPW.getTPW_daysConsumption(self.site_id),2), 33)
-        self.my_setDriver('GV9', self.round2ISY(self.TPW.getTPW_daysSolar(self.site_id),2), 33)
-        self.my_setDriver('GV10', self.round2ISY(self.TPW.getTPW_daysBattery_export(self.site_id),2), 33)       
-        self.my_setDriver('GV11', self.round2ISY(self.TPW.getTPW_daysBattery_import(self.site_id),2), 33)
-        self.my_setDriver('GV12', self.round2ISY(self.TPW.getTPW_daysGrid_export(self.site_id),2), 33) 
-        self.my_setDriver('GV13', self.round2ISY(self.TPW.getTPW_daysGrid_import(self.site_id),2), 33)
-        self.my_setDriver('GV14', self.round2ISY(self.TPW.getTPW_daysGrid_export(self.site_id)- self.TPW.getTPW_daysGrid_import(self.site_id) ,2), 33)
-
-
-        #self.my_setDriver('GV29', self.round2ISY(self.TPW.getTPW_daysGrid_import(self.site_id) - self.TPW.getTPW_daysGrid_export(self.site_id),2), 33)
-        self.my_setDriver('GV28', self.round2ISY(self.TPW.getTPW_daysGeneratorUse(self.site_id),2), 33)
-        '''
-    '''
-    def update_PW_data(self, site_id, level):
-        self.TPW.pollSystemData(site_id, level) 
-    '''
 
     def ISYupdate (self, command):
         logging.debug('ISY-update called')
         #self.update_PW_data(self.site_id, 'all')
-        self.TPW.pollSystemData(self.site_id, 'all') 
+        self.update_data()
         self.updateISYdrivers()
 
  
 
-    id = 'pwstatus'
+    id = 'spanpanel'
     commands = { 'UPDATE': ISYupdate, 
                 }
  
     drivers = [
             {'driver': 'ST', 'value': 99, 'uom': 25},  #online         
-            {'driver': 'GV0', 'value': 0, 'uom': 51},       
-            {'driver': 'GV1', 'value': 0, 'uom': 33},
-            {'driver': 'GV2', 'value': 0, 'uom': 33},  
-            {'driver': 'GV3', 'value': 0, 'uom': 33}, 
-            {'driver': 'GV4', 'value': 0, 'uom': 33},  
-                     
+            {'driver': 'GV0', 'value': 0, 'uom': 25},       
+            {'driver': 'GV1', 'value': 0, 'uom': 30},
+            {'driver': 'GV2', 'value': 0, 'uom': 30},  
+            {'driver': 'GV3', 'value': 0, 'uom': 25}, 
+            {'driver': 'GV4', 'value': 0, 'uom': 25},  
+            #{'driver': 'GV5', 'value': 0, 'uom': 33},  
+            #{'driver': 'GV6', 'value': 0, 'uom': 33}, 
+            {'driver': 'GV7', 'value': 0, 'uom': 51},  
+                                          
             ]
 
     

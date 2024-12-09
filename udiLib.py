@@ -54,6 +54,25 @@ def maskToDays(self, daysValue):
             daysList.append(self.daysOfWeek[i])
     return(daysList)
 
+def openClose2ISY(self, state):
+    if state in ['OPEN', 'CLOSED']:
+        if state == 'OPEN':
+            return(1)
+        else:
+            return(0)
+    else:
+        return(None)
+    
+def priority2ISY(self, state):
+    if state in ['MUST_HAVE', 'NICE_TO_HAVE', 'NOT_ESSENTIAL']:
+        if state == 'MUST_HAVE':
+            return(0)
+        elif state == 'NICE_TO_HAVE':
+            return(1)
+        else:
+            return(2)
+    else:
+        return(None)
 
 def bool2Nbr(self, bool):
     if bool == True:

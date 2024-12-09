@@ -41,8 +41,6 @@ class SPANController(udi_interface.Node):
         self.customData = Custom(polyglot, 'customdata')
         self.Notices = Custom(self.poly, 'notices')
 
-        #SPAN =SPANController(polyglot, 'controller', 'controller', 'SPAN Panels')
-        #polyglot.addNode(TPW)
         
         logging.debug('before subscribe')
         polyglot.subscribe(polyglot.STOP, self.stop)
@@ -63,7 +61,7 @@ class SPANController(udi_interface.Node):
         self.nodeDefineDone = False
         self.longPollCountMissed = 0
         polyglot.ready()
-        logging.debug('Controller init DONE')
+        logging.debug('Controller init DONE')        
         
         polyglot.addNode(self)
         self.wait_for_node_done()
@@ -104,7 +102,6 @@ class SPANController(udi_interface.Node):
         logging.info('handleNotices:')
 
     def customParamsHandler(self, userParams):
-        #logging.debug('customParamsHandler 1 : {}'.format(self.TPW_cloud._oauthTokens))
         self.customParameters.load(userParams)
         logging.debug('customParamsHandler called {}'.format(userParams))
 
@@ -155,7 +152,7 @@ class SPANController(udi_interface.Node):
                 accessToken = res['accessToken']
             else:
                 return(None)
-            logging.debug(f'AccessToken {accessToken}')
+            #logging.debug(f'AccessToken {accessToken}')
             return(accessToken)   
         except Exception as e:
             logging.debug(f'exception {e}')
@@ -164,12 +161,8 @@ class SPANController(udi_interface.Node):
 
     def start(self):
         site_string = ''
-        assigned_addresses = []
+        assigned_addresses = ['controller']
         logging.debug('start SPAN')
-        #logging.debug('start 1 : {}'.format(self.TPW_cloud._oauthTokens))
-
-        #logging.debug('start 2 : {}'.format(self.TPW_cloud._oauthTokens))
-        #while not self.customParam_done or not self.TPW_cloud.customNsHandlerDone or not self.TPW_cloud.customDataHandlerDone:
         while not self.customParam_done or not self.config_done:
             logging.info('Waiting for node to initialize')
             logging.debug(' 1 2: {} {}'.format(self.customParam_done , self.config_done))
@@ -184,8 +177,12 @@ class SPANController(udi_interface.Node):
         for indx, IPaddress in enumerate(self.span_ip_list):
             #self.span_panel[indx]= SpanAccess(IPaddress)    
             token = None
-            nodename = IPaddress
-            address = self.poly.getValidAddress(nodename)
+            tempstr = IPaddress
+            tempstr = tempstr.replace('.','')
+            tempstr= tempstr[-14:]
+            address = self.poly.getValidAddress(tempstr)
+
+            nodename = 'SPAN '+str(IPaddress)
             if IPaddress in self.customData.keys():
                 token = self.customData[IPaddress]
             else:
@@ -198,6 +195,8 @@ class SPANController(udi_interface.Node):
                         self.poly.Notices['panel'] = 'Click Span Panel door switch 3 times to register Panels'
                         time.sleep(10)
             self.poly.Notices.clear()
+
+            logging.debug(f'Panel info : {address} , {nodename}')
             self.span_panel[indx] = udiSpanPanelNode(self.poly, address, address, nodename, IPaddress, token)    
             # need to retrieve unique ID and Token and store in customData          
             
@@ -228,11 +227,7 @@ class SPANController(udi_interface.Node):
         #self.removeNoticesAll()
 
         self.poly.Notices.clear()
-        try:
-            if self.TPW:
-                self.TPW.disconnectTPW()
-        except Exception as e:
-            logging.debug('Local logout failed {}'.format(e))
+
         self.node.setDriver('ST', 0 )
         self.poly.stop()
         logging.debug('stop - Cleaning up')
@@ -252,10 +247,8 @@ class SPANController(udi_interface.Node):
     def shortPoll(self):
         logging.info('Tesla Power Wall Controller shortPoll')
         self.heartbeat()
-        #if self.TPW.pollSystemData('critical'):
-        #should make short loop local long pool cloud 
-        for site_id in self.PowerWalls:
-            self.TPW.pollSystemData(site_id, 'critical')
+
+
         for node in self.poly.nodes():
             if node.node_ready():
                 logging.debug('short poll node loop {} - {}'.format(node.name, node.node_ready()))
@@ -266,11 +259,7 @@ class SPANController(udi_interface.Node):
 
     def longPoll(self):
         logging.info('Tesla Power Wall Controller longPoll')
-        for site_id in self.PowerWalls:
-            if not self.TPW.pollSystemData(site_id, 'all'):
-                self.longPollCountMissed += 1
-            else:
-                self.longPollCountMissed = 0
+
         for node in self.poly.nodes():
             logging.debug('long poll node loop {} - {}'.format(node.name, node.node_ready()))
             if node.node_ready():
@@ -285,32 +274,10 @@ class SPANController(udi_interface.Node):
     
 
     def updateISYdrivers(self):
-        logging.debug('System updateISYdrivers')
+        logging.debug('System updateISYdrivers')       
         
         '''
-        #value = self.TPW_cloud.authenticated()
-        #if value == 0:
-        #   self.longPollCountMissed = self.longPollCountMissed + 1
-        #else:
-        #   self.longPollCountMissed = 0
-        self.my_setDriver('ST', self.bool2ISY( self.cloudAccessUp  or self.localAccessUp ))
-        self.my_setDriver('GV2', self.bool2ISY(self.TPW.getTPW_onLine()))
-        self.my_setDriver('GV3', self.longPollCountMissed)
-        #self.node.setDriver('GV3', self.longPollCountMissed)     
-        if self.cloud_access_enabled == False and self.local_access_enabled == False:
-            self.my_setDriver('GV4', 0)
-        elif self.cloud_access_enabled == True and self.local_access_enabled == False:
-            self.my_setDriver('GV4', 1)
-        elif self.cloud_access_enabled == False and self.local_access_enabled == True:
-            self.my_setDriver('GV4', 2)
-        elif self.cloud_access_enabled == True and self.local_access_enabled == True:
-            self.my_setDriver('GV4', 3)
 
-        #logging.debug('CTRL Update ISY drivers : GV2  value:' + str(value) )
-        #logging.debug('CTRL Update ISY drivers : GV3  value:' + str(self.longPollCountMissed) )
-
-        #value = self.TPW.isNodeServerUp()
-        #self.node.setDriver('GV2', value)
         #logging.debug('CTRL Update ISY drivers : GV2  value:' + str(value) )
 
         '''
@@ -332,7 +299,7 @@ class SPANController(udi_interface.Node):
 
 if __name__ == "__main__":
     try:
-        logging.info('Starting Span Power Panel Controller')
+        logging.info(f'Starting SpanIO Power Panel Controller version {VERSION}')
         polyglot = udi_interface.Interface([])
         polyglot.start(VERSION)
         #polyglot.updateProfile()
