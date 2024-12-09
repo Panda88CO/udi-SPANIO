@@ -285,7 +285,7 @@ class SPANController(udi_interface.Node):
     
 
     def updateISYdrivers(self):
-        logging.debug('System updateISYdrivers')       
+        logging.debug('System updateISYdrivers')
         
         '''
         #value = self.TPW_cloud.authenticated()
