@@ -55,6 +55,7 @@ def maskToDays(self, daysValue):
     return(daysList)
 
 def openClose2ISY(self, state):
+    logging.debug(f'openClose2ISY {state}')
     if state in ['OPEN', 'CLOSED']:
         if state == 'OPEN':
             return(1)
@@ -64,6 +65,7 @@ def openClose2ISY(self, state):
         return(None)
     
 def priority2ISY(self, state):
+    logging.debug(f'priority2ISY {state}')
     if state in ['MUST_HAVE', 'NICE_TO_HAVE', 'NOT_ESSENTIAL']:
         if state == 'MUST_HAVE':
             return(0)

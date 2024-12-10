@@ -88,11 +88,11 @@ class udiSpanPanelNode(udi_interface.Node):
         logging.debug(f'data: {self.span_panel.span_data}')
         self.my_setDriver('ST', self.openClose2ISY(self.span_panel.get_main_panel_breaker_state()))
         self.my_setDriver('GV0', self.openClose2ISY(self.span_panel.get_panel_door_state()))
-        self.my_setDriver('GV1', self.get_instant_grid_power())
-        self.my_setDriver('GV2', self.get_feedthrough_power())
+        self.my_setDriver('GV1', round(self.span_panel.get_instant_grid_power(),2))
+        self.my_setDriver('GV2', round(self.span_panel.get_feedthrough_power(),2))
         self.my_setDriver('GV3', 0 ) # Needs to be updated
         self.my_setDriver('GV4', 0 )  # Needs to be updated      
-        self.my_setDriver('GV7', self.get_battery_percentage() )  # Needs to be updated      
+        self.my_setDriver('GV7', int(self.span_panel.get_battery_percentage()) )   
 
 
     def ISYupdate (self, command):

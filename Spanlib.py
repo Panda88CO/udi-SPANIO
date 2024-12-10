@@ -94,21 +94,25 @@ class SpanAccess(object):
     def update_span_data(self):
         logging.debug(f'updateSpanData ({self.IP_address})')
         self.update_panel_status()
+        logging.debug('panel status {}'.format(self.span_data['status']))
         self.update_panel_info()     
+        logging.debug('panel info {}'.format(self.span_data['panel_info']))
         self.update_battery_info()
+        logging.debug('battery info {}'.format(self.span_data['battery_info']))
         self.update_circuit_info()        
-
+        logging.debug('circuit info {}'.format(self.span_data['circuit_info']))
 
     def get_panel_door_state(self):
         logging.debug('get_panel_door_state')
         try:
-            return(self.span_data['status']['doorState'])
+            return(self.span_data['status']['system']['doorState'])
         except Exception as e:
             return(None)
         
 
     def get_battery_percentage(self):
         logging.debug('get_battery_percentage')
+        logging.debug('data {}'.format(self.span_data['battery_info']))
         try:
             return(self.span_data['battery_info']['soe']['percentage'])
         except Exception as e:
@@ -117,6 +121,7 @@ class SpanAccess(object):
 
     def get_main_panel_breaker_state(self):
         logging.debug('get_main_panel_breaker_state')
+        logging.debug('data {}'.format(self.span_data['panel_info']))
         try:
             return(self.span_data['panel_info']['mainRelayState'])
         except Exception as e:
@@ -125,6 +130,7 @@ class SpanAccess(object):
 
     def get_grid_state(self):
         logging.debug('get_grid_state')
+        logging.debug('data {}'.format(self.span_data['panel_info']))
         try:
             return(self.span_data['panel_info']['dsmGridState'])
         except Exception as e:
@@ -133,14 +139,17 @@ class SpanAccess(object):
 
     def get_dms_state(self):        
         logging.debug('get_dms_state')
+        logging.debug('data {}'.format(self.span_data['panel_info']))
         try:
             return(self.span_data['panel_info']['dsmState'])
+        
         except Exception as e:
             return(None)    
 
 
     def get_dms_run_config(self):    
         logging.debug('get_dms_run_config')
+        logging.debug('data {}'.format(self.span_data['panel_info']))
         try:
             return(self.span_data['panel_info']['currentRunConfig'])
         except Exception as e:
@@ -149,6 +158,7 @@ class SpanAccess(object):
 
     def get_instant_grid_power(self):         
         logging.debug('get_instant_grid_power')
+        logging.debug('data {}'.format(self.span_data['panel_info']))
         try:
             return(self.span_data['panel_info']['instantGridPowerW'])
         except Exception as e:
@@ -156,6 +166,7 @@ class SpanAccess(object):
 
     def get_feedthrough_power(self):              
         logging.debug('get_feedthrough_power')
+        logging.debug('data {}'.format(self.span_data['panel_info']))
         try:
             return(self.span_data['panel_info']['feedthroughPowerW'] )
         except Exception as e:
@@ -164,13 +175,15 @@ class SpanAccess(object):
 
     def get_breaker_state(self, breaker_id):
         logging.debug(f'get_breaker_state {breaker_id}')
+        logging.debug('data {}'.format(self.span_data['circuit_info'][breaker_id]))
         try:
             return(self.span_data['circuit_info'][breaker_id]['relayState'] )
         except Exception as e:
             return(None)    
 
     def get_breaker_priority(self, breaker_id):
-        logging.debug(f'get_breaker_state {breaker_id}')
+        logging.debug(f'get_breaker_priority {breaker_id}')
+        logging.debug('data {}'.format(self.span_data['circuit_info'][breaker_id]))
         try:
             return(self.span_data['circuit_info'][breaker_id]['priority'] )
         except Exception as e:
@@ -179,6 +192,7 @@ class SpanAccess(object):
 
     def get_breaker_instant_power(self, breaker_id):
         logging.debug(f'get_breaker_instant_power {breaker_id}')
+        logging.debug('data {}'.format(self.span_data['circuit_info'][breaker_id]))
         try:
             pwr = self.span_data['circuit_info'][breaker_id]['instantPowerW']
             delay_time = int(time.time() -self.span_data['circuit_info'][breaker_id]['instantPowerUpdateTimeS'])
@@ -187,7 +201,7 @@ class SpanAccess(object):
             return(None)    
 
     def get_breaker_energy_info(self, breaker_id):
-        logging.debug(f'get_breaker_energy_info {breaker_id}')
+        logging.debug('get_breaker_energy_info {breaker_id}')
         try:
             produced_energy =  self.span_data['circuit_info'][breaker_id]['producedEnergyWh']
             consumed_energy = self.span_data['circuit_info'][breaker_id]['consumedEnergyWh'] 
@@ -196,9 +210,46 @@ class SpanAccess(object):
         except Exception as e:
             return(None)    
 
-       
+    def set_breaker_state(self, breaker_id, state):
+        logging.debug(f'set_breaker_state {breaker_id} {state}')
+        code, return_data = self.setBreakerState(breaker_id, state)
+        logging.debug(f'return {code}, {return_data}')
+        if code == 200:
+            self.span_data['circuit_info'][breaker_id] = return_data
+
+    def set_breaker_priority(self, breaker_id, priority):
+        logging.debug(f'set_breaker_priority {breaker_id} {priority}')
+        code, return_data = self.setBreakerPriority(breaker_id, priority)
+        logging.debug(f'return {code}, {return_data}')
+        if code == 200:
+            self.span_data['circuit_info'][breaker_id] = return_data
+
+
 
 ############################
+
+    def setBreakerState(self, id, state):
+        logging.debug(f'setBreakerState {id}  {state}')
+        if state in ['OPEN', 'CLOSED']:
+            data =  {
+                    'relay_state_in':{'relayState':state}
+                    }                
+            code, breaker_info = self._callApi('POST', '/circuits/'+str(id), data)
+            return(code, breaker_info)
+        else:
+            return None, None
+
+    def setBreakerPriority(self, id, priority):
+        logging.debug(f'setBreakerState {id}  {priority}')
+        if priority in ['MUST_HAVE', 'NICE_TO_HAVE', 'NOT_ESSENTIAL' ]:
+            data =  {
+                    'relay_state_in':{'relayState':priority}
+                    }                
+            code, breaker_info = self._callApi('POST', '/circuits/'+str(id), data)
+            return(code, breaker_info)
+        else:
+            return None, None
+
 
     def getAccessToken(self):
         logging.debug(f'getAccessToken ({self.IP_address})')        
