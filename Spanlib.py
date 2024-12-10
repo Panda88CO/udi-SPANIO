@@ -80,31 +80,53 @@ class SpanAccess(object):
             logging.error(f'EXCEPTION: update_battery_info: {e}')
             return(None)
 
-    def update_Accum_Energy(self, breaker_id=None):
+    def update_Accum_Energy(self, breaker_id = None):
         logging.debug(f'update_Accum_Energy {breaker_id}')
-        if id != None:
-            update_time = self.span_data['circuit_info'][breaker_id]['energyAccumUpdateTimeS']
-            produced_energy = self.span_data['circuit_info'][breaker_id]['producedEnergyWh']
-            consumed_energy = self.span_data['circuit_info'][breaker_id]['consumedEnergyWh']
-            if breaker_id not in self.accum_data:
-                self.accum_data[breaker_id] = []
-            self.accum_data[breaker_id].append({update_time:{'producedWh':produced_energy, 'consumedWh':consumed_energy}})
-            time_1_hour = update_time - 60*60
-            time_24_hour = update_time - 60*60*24
-            prod_1_hour = produced_energy
-            cons_1_hour = consumed_energy
-            prod_24_hour =produced_energy
-            cons_24_hour = consumed_energy
-            for indx, meas in enumerate (self.accum_data[breaker_id]):
-
-        else:
+        if breaker_id == None:
             for breaker_id in self.span_data['circuit_info']:
-                update_time = self.span_data['circuit_info'][breaker_id]['energyAccumUpdateTimeS']
-                produced_energy = self.span_data['circuit_info'][breaker_id]['producedEnergyWh']
-                consumed_energy = self.span_data['circuit_info'][breaker_id]['consumedEnergyWh']
-                if breaker_id not in self.accum_data:
-                    self.accum_data[breaker_id] = []
-                self.accum_data[breaker_id].append({update_time:{'producedWh':produced_energy, 'consumedWh':consumed_energy}})
+                self.update_Accum_EnergyBreaker(breaker_id)
+        else:
+            self.update_Accum_EnergyBreaker(breaker_id)
+
+    def update_Accum_EnergyBreaker(self, breaker_id):
+        logging.debug(f'update_Accum_Energy {breaker_id}')
+        update_time = self.span_data['circuit_info'][breaker_id]['energyAccumUpdateTimeS']
+        produced_energy = self.span_data['circuit_info'][breaker_id]['producedEnergyWh']
+        consumed_energy = self.span_data['circuit_info'][breaker_id]['consumedEnergyWh']
+        if breaker_id not in self.accum_data:
+            self.accum_data[breaker_id] = []
+        self.accum_data[breaker_id].append({'time':update_time, 'producedWh':produced_energy, 'consumedWh':consumed_energy})
+        time_1_hour = update_time - 60*60
+        time_24_hour = update_time - 60*60*24
+        t_1hour = update_time
+        t_24hour = update_time
+        prod_1_hour = produced_energy
+        cons_1_hour = consumed_energy
+        prod_24_hour =produced_energy
+        cons_24_hour = consumed_energy
+        for indx, meas in enumerate (self.accum_data[breaker_id]):
+            if (abs(meas['time'] - time_1_hour) < abs(t_1hour-time_1_hour)):
+                t_1hour = meas['time']
+                prod_1_hour = meas['producedWh']
+                cons_1_hour = meas['consumedWh']
+            if (abs(meas['time'] - time_24_hour) < abs(t_24hour-time_24_hour)):
+                t_24hour = meas['time']
+                prod_24_hour = meas['producedWh']
+                cons_24_hour = meas['consumedWh']
+        self.span_data['circuit_info'][breaker_id]['prod_1hour'] = (produced_energy-prod_1_hour)*3600/(update_time-t_1hour)
+        self.span_data['circuit_info'][breaker_id]['cons_1hour'] = (consumed_energy-cons_1_hour)*3600/(update_time-t_1hour)
+        self.span_data['circuit_info'][breaker_id]['prod_24hour'] = (produced_energy-prod_24_hour)*3600/(update_time-t_24hour)
+        self.span_data['circuit_info'][breaker_id]['cons_24hour'] = (consumed_energy-cons_24_hour)*3600/(update_time-t_24hour)
+     
+
+
+    def get1HourAverage(self, breaker_id):
+        logging.debug(f'get1HourAverage {breaker_id}')
+        return(self.span_data['circuit_info'][breaker_id]['prod_1hour'], self.span_data['circuit_info'][breaker_id]['cons_1hour'] )
+
+    def get24HourAverage(self, breaker_id):
+        logging.debug(f'get24HourAverage {breaker_id}')
+        return(self.span_data['circuit_info'][breaker_id]['prod_24hour'], self.span_data['circuit_info'][breaker_id]['cons_24hour'] )
 
 
     def update_panel_breaker_info(self, breaker_id):
