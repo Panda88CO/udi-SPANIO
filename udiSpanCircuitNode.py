@@ -81,11 +81,30 @@ class udiSpanCircuitNode(udi_interface.Node):
 
     def set_breaker(self, command):
         logging.debug(f'set_breaker called: {command}')
+        if 'query' in command:
+            state = int(command['query']['openclose.uom25'])
+            if (0 == state):
+                res =  self.span_panel.set_breaker_state(self.circuit, 'CLOSED')
+
+            else:
+                res = self.span_panel.set_breaker_state(self.circuit, 'OPEN')
+            if res:
+                self.my_setDriver('ST', state)
 
 
     def set_priority(self, command):
         logging.debug(f'set_priority called: {command}')
-   
+        if 'query' in command:
+            priority = int(command['query']['priority.uom25'])
+            if (0 == priority):
+                res =  self.span_panel.set_breaker_priority(self.circuit, 'CLOSED')
+
+            else:
+                res = self.span_panel.set_breaker_priority(self.circuit, 'OPEN')
+            if res:
+                self.my_setDriver('ST', priority)   
+
+
 
     id = 'spancircuit'
     commands = {    
@@ -110,14 +129,14 @@ class udiSpanCircuitNode(udi_interface.Node):
             {'driver': 'ST', 'value': 99, 'uom': 25},  #online         
             #{'driver': 'GV0', 'value': 0, 'uom': 51},       
             {'driver': 'GV1', 'value': 0, 'uom': 25},
-            {'driver': 'GV2', 'value': 0, 'uom': 30},  
+            {'driver': 'GV2', 'value': 0, 'uom': 73},  
             #{'driver': 'GV3', 'value': 0, 'uom': 57}, 
             {'driver': 'GV4', 'value': 0, 'uom': 57},  
 
-            {'driver': 'GV5', 'value': 99, 'uom': 33},  
-            {'driver': 'GV6', 'value': 99, 'uom': 33},  
-            {'driver': 'GV7', 'value': 99, 'uom': 33},  
-            {'driver': 'GV8', 'value': 99, 'uom': 33}, 
+            {'driver': 'GV5', 'value': 99, 'uom': 119},  
+            {'driver': 'GV6', 'value': 99, 'uom': 119},  
+            {'driver': 'GV7', 'value': 99, 'uom': 119},  
+            {'driver': 'GV8', 'value': 99, 'uom': 119}, 
 
             {'driver': 'GV9', 'value': 0, 'uom': 57},           
 

@@ -38,40 +38,40 @@ class SPANController(udi_interface.Node):
         self.span_ip_list = []
 
         self.customParameters = Custom(self.poly, 'customparams')
-        self.customData = Custom(polyglot, 'customdata')
+        self.customData = Custom(self.poly, 'customdata')
         self.Notices = Custom(self.poly, 'notices')
 
         
         logging.debug('before subscribe')
-        polyglot.subscribe(polyglot.STOP, self.stop)
-        polyglot.subscribe(polyglot.CUSTOMPARAMS, self.customParamsHandler)
-        polyglot.subscribe(polyglot.CUSTOMDATA, self.customDataHandler) 
-        polyglot.subscribe(polyglot.CONFIGDONE, self.configDoneHandler)
-        polyglot.subscribe(polyglot.ADDNODEDONE, self.node_queue)        
-        polyglot.subscribe(polyglot.LOGLEVEL, self.handleLevelChange)
-        polyglot.subscribe(polyglot.NOTICES, self.handleNotices)
-        polyglot.subscribe(polyglot.POLL, self.systemPoll)
+        self.poly.subscribe(self.poly.STOP, self.stop)
+        self.poly.subscribe(self.poly.CUSTOMPARAMS, self.customParamsHandler)
+        self.poly.subscribe(self.poly.CUSTOMDATA, self.customDataHandler) 
+        self.poly.subscribe(self.poly.CONFIGDONE, self.configDoneHandler)
+        self.poly.subscribe(self.poly.ADDNODEDONE, self.node_queue)        
+        self.poly.subscribe(self.poly.LOGLEVEL, self.handleLevelChange)
+        self.poly.subscribe(self.poly.NOTICES, self.handleNotices)
+        self.poly.subscribe(self.poly.POLL, self.systemPoll)
 
 
         logging.debug('self.address : ' + str(self.address))
         logging.debug('self.name :' + str(self.name))
         self.hb = 0
 
-        polyglot.Notices.clear()
+        self.poly.Notices.clear()
         self.nodeDefineDone = False
         self.longPollCountMissed = 0
-        polyglot.ready()
+        self.poly.ready()
         logging.debug('Controller init DONE')        
         
-        polyglot.addNode(self)
+        self.poly.addNode(self)
         self.wait_for_node_done()
         
-        self.node = polyglot.getNode(self.address)
+        self.node = self.poly.getNode(self.address)
         logging.debug('Node info: {}'.format(self.node))
         self.my_setDriver('ST', 1)
         logging.debug('Calling start')       
-        polyglot.subscribe(polyglot.START, self.start, 'controller')
-        polyglot.updateProfile()
+        self.poly.subscribe(self.poly.START, self.start, 'controller')
+        self.poly.updateProfile()
         logging.debug('finish Init ')
         
 
@@ -174,6 +174,7 @@ class SPANController(udi_interface.Node):
             self.customData['uid']= uid
         else:
             uid = self.customData['uid']
+        self.my_setDriver('GV1', len(self.span_ip_list))
         for indx, IPaddress in enumerate(self.span_ip_list):
             #self.span_panel[indx]= SpanAccess(IPaddress)    
             token = None
@@ -248,22 +249,25 @@ class SPANController(udi_interface.Node):
         logging.info('Tesla Power Wall Controller shortPoll')
         self.heartbeat()
 
-
+        for indx, node_adr in enumerate(self.span_ip_list):
+            node_adr.update_data()
+        
         for node in self.poly.nodes():
             if node.node_ready():
                 logging.debug('short poll node loop {} - {}'.format(node.name, node.node_ready()))
-                #node.update_PW_data('all')
                 node.updateISYdrivers()
             else:
                 logging.info('Problem polling data from Tesla system - {} may not be ready yet'.format(node.name))
 
     def longPoll(self):
         logging.info('Tesla Power Wall Controller longPoll')
-
+        for indx, node_adr in enumerate(self.span_ip_list):
+            node_adr.update_data()
+            node_adr.update_data_averages()
+            
         for node in self.poly.nodes():
             logging.debug('long poll node loop {} - {}'.format(node.name, node.node_ready()))
             if node.node_ready():
-                #node.update_PW_data('all')
                 node.updateISYdrivers()
             else:
                 logging.info('Problem polling data from Tesla system - {} may not be ready yet'.format(node.name))

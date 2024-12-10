@@ -223,7 +223,7 @@ class SpanAccess(object):
         logging.debug(f'return {code}, {return_data}')
         if code == 200:
             self.span_data['circuit_info'][breaker_id] = return_data
-
+        return( code == 200)
 
 
 ############################
