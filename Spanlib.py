@@ -21,12 +21,13 @@ class SpanAccess(object):
         self.accessToken = token
         
         self.yourApiEndpoint = f'http://{self.IP_address}/api/v1'
-        self.STATUS      = '/status'
+        #self.STATUS      = '/status'
         #self.SPACES      = '/spaces'
-        self.CIRCUITS    = '/circuits'
-        self.PANEL       = '/panel'
-        self.REGISTER    = '/register'
+        ##self.CIRCUITS    = '/circuits'
+        #self.PANEL       = '/panel'
+        #self.REGISTER    = '/register'
         self.span_data = {}
+        self.accum_data = {}
 
 
     def update_panel_status(self):
@@ -78,7 +79,34 @@ class SpanAccess(object):
         except Exception as e:
             logging.error(f'EXCEPTION: update_battery_info: {e}')
             return(None)
-                
+
+    def update_Accum_Energy(self, breaker_id=None):
+        logging.debug(f'update_Accum_Energy {breaker_id}')
+        if id != None:
+            update_time = self.span_data['circuit_info'][breaker_id]['energyAccumUpdateTimeS']
+            produced_energy = self.span_data['circuit_info'][breaker_id]['producedEnergyWh']
+            consumed_energy = self.span_data['circuit_info'][breaker_id]['consumedEnergyWh']
+            if breaker_id not in self.accum_data:
+                self.accum_data[breaker_id] = []
+            self.accum_data[breaker_id].append({update_time:{'producedWh':produced_energy, 'consumedWh':consumed_energy}})
+            time_1_hour = update_time - 60*60
+            time_24_hour = update_time - 60*60*24
+            prod_1_hour = produced_energy
+            cons_1_hour = consumed_energy
+            prod_24_hour =produced_energy
+            cons_24_hour = consumed_energy
+            for indx, meas in enumerate (self.accum_data[breaker_id]):
+
+        else:
+            for breaker_id in self.span_data['circuit_info']:
+                update_time = self.span_data['circuit_info'][breaker_id]['energyAccumUpdateTimeS']
+                produced_energy = self.span_data['circuit_info'][breaker_id]['producedEnergyWh']
+                consumed_energy = self.span_data['circuit_info'][breaker_id]['consumedEnergyWh']
+                if breaker_id not in self.accum_data:
+                    self.accum_data[breaker_id] = []
+                self.accum_data[breaker_id].append({update_time:{'producedWh':produced_energy, 'consumedWh':consumed_energy}})
+
+
     def update_panel_breaker_info(self, breaker_id):
         try:
             code, breaker_info = self.getSpanBreakerInfo(breaker_id)

@@ -237,6 +237,8 @@ class SPANController(udi_interface.Node):
         
     def systemPoll(self, pollList):
         logging.info('systemPoll {}'.format(pollList))
+        for indx, node_adr in enumerate(self.span_ip_list):
+            node_adr.update_data()
         if self.initialized:    
             if 'longPoll' in pollList:
                 self.longPoll()
@@ -248,9 +250,6 @@ class SPANController(udi_interface.Node):
     def shortPoll(self):
         logging.info('Tesla Power Wall Controller shortPoll')
         self.heartbeat()
-
-        for indx, node_adr in enumerate(self.span_ip_list):
-            node_adr.update_data()
         
         for node in self.poly.nodes():
             if node.node_ready():
@@ -261,8 +260,7 @@ class SPANController(udi_interface.Node):
 
     def longPoll(self):
         logging.info('Tesla Power Wall Controller longPoll')
-        for indx, node_adr in enumerate(self.span_ip_list):
-            node_adr.update_data()
+        for indx, node_adr in enumerate(self.span_panel):
             node_adr.update_data_averages()
             
         for node in self.poly.nodes():
