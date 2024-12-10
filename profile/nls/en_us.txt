@@ -24,7 +24,6 @@ ST-nlsspanpanel-GV4-NAME = Grid Status
 ST-nlsspanpanel-GV7-NAME = Backup Battery Capacity
 CMD-nlsspanpanel-UPDATE-NAME = Update Panels Data
 
-
 ND-spancircuit-NAME = SPAN Breaker Status
 ND-spancircuit-ICON = EnergyMonitor
 ST-nlsspancircuit-ST-NAME = Circuit (relay) State
@@ -40,8 +39,6 @@ ST-nlsspancircuit-GV9-NAME = Time Since Energy Measurement
 CMD-nlsspancircuit-UPDATE-NAME = Update Panels Data
 CMD-nlsspancircuit-OPENCLOSE-NAME = Set Breaker State
 CMD-nlsspancircuit-PRIORITY-NAME = Set Breaker Priority Panels Data
-
-
 
 PRIORITY-0 = Must Have
 PRIORITY-1 = Nice to Have
