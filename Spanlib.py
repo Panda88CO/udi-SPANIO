@@ -378,6 +378,8 @@ class SpanAccess(object):
         completeUrl = self.yourApiEndpoint + url
 
         headers = {
+            'Content-Type': 'application/json',
+            'accept': 'application/json',
             'Authorization': f"Bearer { accessToken }"
         }
 
