@@ -32,7 +32,7 @@ class udiSpanPanelNode(udi_interface.Node):
         self.n_queue = []
         self.poly.subscribe(self.poly.ADDNODEDONE, self.node_queue)
         self.poly.subscribe(self.poly.START, self.start, address)
-
+        self.poly.subscribe(self.poly.POLL, self.systemPoll)
         self.poly.ready()
         self.poly.addNode(self)
         self.wait_for_node_done()
@@ -68,8 +68,14 @@ class udiSpanPanelNode(udi_interface.Node):
                 nodename = self.poly.getValidName(self.circuits[circuit]['name'])
                 self.circuit_access[circuit] = udiSpanCircuitNode(self.poly, self.panel_node_adr, nodeaddress, nodename, self.span_panel, str(circuit))
                                                                 
-    
-    
+    def systemPoll(self, pollList):
+        logging.info(f'systemPoll {self.span_ipadr }')
+        self.update_data()   
+        self.updateISYdrivers()
+        for circuit in self.circuit_access:
+            self.circuit_access[circuit].updateISYdrivers()
+
+       
     def update_data(self):
         self.span_panel.update_span_data()
                  

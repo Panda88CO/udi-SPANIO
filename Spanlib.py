@@ -89,6 +89,8 @@ class SpanAccess(object):
             self.update_Accum_EnergyBreaker(breaker_id)
 
     def update_Accum_EnergyBreaker(self, breaker_id):
+        hourSec = 3600 # 60*60
+        daySec = 86400 # 60*60*24
         logging.debug(f'update_Accum_Energy {breaker_id}')
         update_time = self.span_data['circuit_info'][breaker_id]['energyAccumUpdateTimeS']
         produced_energy = self.span_data['circuit_info'][breaker_id]['producedEnergyWh']
@@ -96,8 +98,8 @@ class SpanAccess(object):
         if breaker_id not in self.accum_data:
             self.accum_data[breaker_id] = []
         self.accum_data[breaker_id].append({'time':update_time, 'producedWh':produced_energy, 'consumedWh':consumed_energy})
-        time_1_hour = update_time - 60*60
-        time_24_hour = update_time - 60*60*24
+        time_1_hour = update_time - hourSec #60*60
+        time_24_hour = update_time - daySec #60*60*24
         t_1hour = update_time
         t_24hour = update_time
         prod_1_hour = produced_energy
@@ -113,11 +115,23 @@ class SpanAccess(object):
                 t_24hour = meas['time']
                 prod_24_hour = meas['producedWh']
                 cons_24_hour = meas['consumedWh']
+        delete_list = []
+        for indx, meas in enumerate (self.accum_data[breaker_id]): 
+            if meas['time'] < t_24hour:
+                delete_list.append(meas)
+        for indx, meas in enumerate(delete_list):
+             self.accum_data[breaker_id].remove(meas)
+             logging.debug(f'remove meas {meas} , {time.time()-daySec} ')
         self.span_data['circuit_info'][breaker_id]['prod_1hour'] = (produced_energy-prod_1_hour)*3600/(update_time-t_1hour)
         self.span_data['circuit_info'][breaker_id]['cons_1hour'] = (consumed_energy-cons_1_hour)*3600/(update_time-t_1hour)
         self.span_data['circuit_info'][breaker_id]['prod_24hour'] = (produced_energy-prod_24_hour)*3600/(update_time-t_24hour)
         self.span_data['circuit_info'][breaker_id]['cons_24hour'] = (consumed_energy-cons_24_hour)*3600/(update_time-t_24hour)
-     
+        logging.debug('{} - update_Accum_EnergyBreaker 1 hour {}: {} {} 24Hour {}: {} {}'.format(breaker_id, t_1hour,
+                                                                            self.span_data['circuit_info'][breaker_id]['prod_1hour'] ,
+                                                                            self.span_data['circuit_info'][breaker_id]['cons_1hour'] ,
+                                                                            t_24hour,
+                                                                            self.span_data['circuit_info'][breaker_id]['prod_24hour'],
+                                                                            self.span_data['circuit_info'][breaker_id]['cons_24hour']))
 
 
     def get1HourAverage(self, breaker_id):
@@ -251,11 +265,12 @@ class SpanAccess(object):
             return(None)    
 
     def get_breaker_energy_info(self, breaker_id):
-        logging.debug('get_breaker_energy_info {breaker_id}')
+        logging.debug(f'get_breaker_energy_info {breaker_id}')
         try:
             produced_energy =  self.span_data['circuit_info'][breaker_id]['producedEnergyWh']
             consumed_energy = self.span_data['circuit_info'][breaker_id]['consumedEnergyWh'] 
             delay_time = int(time.time() -self.span_data['circuit_info'][breaker_id]['energyAccumUpdateTimeS'])
+            logging.debug(f'{breaker_id} get_breaker_energy_info {produced_energy} {consumed_energy} {delay_time}')
             return(produced_energy, consumed_energy, delay_time)
         except Exception as e:
             return(None)    

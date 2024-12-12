@@ -237,6 +237,8 @@ class SPANController(udi_interface.Node):
         
     def systemPoll(self, pollList):
         logging.info('systemPoll {}'.format(pollList))
+        self.heartbeat()
+        '''
         for indx, node_adr in enumerate(self.span_ip_list):
             node_adr.update_data()
         if self.initialized:    
@@ -246,7 +248,8 @@ class SPANController(udi_interface.Node):
                 self.shortPoll()
         else:
             logging.info('Waiting for system/nodes to initialize')
-
+        '''
+        
     def shortPoll(self):
         logging.info('Tesla Power Wall Controller shortPoll')
         self.heartbeat()
