@@ -70,10 +70,11 @@ class udiSpanPanelNode(udi_interface.Node):
                                                                 
     def systemPoll(self, pollList):
         logging.info(f'systemPoll {self.span_ipadr }')
-        self.update_data()   
-        self.updateISYdrivers()
-        for circuit in self.circuit_access:
-            self.circuit_access[circuit].updateISYdrivers()
+        if self.node_ok:
+            self.update_data()   
+            self.updateISYdrivers()
+            for circuit in self.circuit_access:
+                self.circuit_access[circuit].updateISYdrivers()
 
        
     def update_data(self):

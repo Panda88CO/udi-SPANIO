@@ -129,16 +129,20 @@ class SpanAccess(object):
         for indx, meas in enumerate(delete_list):
              self.accum_data[breaker_id].remove(meas)
              logging.debug(f'remove meas {meas} , {time.time()-daySec} ')
-        self.span_data['circuit_info'][breaker_id]['prod_1hour'] = (produced_energy-prod_1_hour)*3600/(update_time-t_1hour)
-        self.span_data['circuit_info'][breaker_id]['cons_1hour'] = (consumed_energy-cons_1_hour)*3600/(update_time-t_1hour)
-        self.span_data['circuit_info'][breaker_id]['prod_24hour'] = (produced_energy-prod_24_hour)*3600/(update_time-t_24hour)
-        self.span_data['circuit_info'][breaker_id]['cons_24hour'] = (consumed_energy-cons_24_hour)*3600/(update_time-t_24hour)
-        logging.debug('{} - update_Accum_EnergyBreaker 1 hour {}: {} {} 24Hour {}: {} {}'.format(breaker_id, t_1hour,
-                                                                            self.span_data['circuit_info'][breaker_id]['prod_1hour'] ,
-                                                                            self.span_data['circuit_info'][breaker_id]['cons_1hour'] ,
-                                                                            t_24hour,
-                                                                            self.span_data['circuit_info'][breaker_id]['prod_24hour'],
-                                                                            self.span_data['circuit_info'][breaker_id]['cons_24hour']))
+
+
+        '''     
+        if update_time == t_1hour:
+            self.span_data['circuit_info'][breaker_id]['prod_1hour'] = None
+            self.span_data['circuit_info'][breaker_id]['cons_1hour'] = None
+            self.span_data['circuit_info'][breaker_id]['prod_24hour'] = None
+            self.span_data['circuit_info'][breaker_id]['cons_24hour'] = None
+        else:
+            self.span_data['circuit_info'][breaker_id]['prod_1hour'] = (produced_energy-prod_1_hour)*3600/(update_time-t_1hour)
+            self.span_data['circuit_info'][breaker_id]['cons_1hour'] = (consumed_energy-cons_1_hour)*3600/(update_time-t_1hour)
+            self.span_data['circuit_info'][breaker_id]['prod_24hour'] = (produced_energy-prod_24_hour)*3600/(update_time-t_24hour)
+            self.span_data['circuit_info'][breaker_id]['cons_24hour'] = (consumed_energy-cons_24_hour)*3600/(update_time-t_24hour)
+        '''
 
 
         if  update_time != t_1hour and hour_ok:
