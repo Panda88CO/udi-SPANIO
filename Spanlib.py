@@ -105,7 +105,13 @@ class SpanAccess(object):
         cons_1_hour = consumed_energy
         prod_24_hour =produced_energy
         cons_24_hour = consumed_energy
+        hour_ok = False
+        day_ok = False
         for indx, meas in enumerate (self.accum_data[breaker_id]):
+            if meas['time'] <= time_1_hour:
+                hour_ok = True
+            if meas['time'] <= time_24_hour:
+                day_ok = True
             if (abs(meas['time'] - time_1_hour) < abs(t_1hour-time_1_hour)):
                 t_1hour = meas['time']
                 prod_1_hour = meas['producedWh']
@@ -114,15 +120,25 @@ class SpanAccess(object):
                 t_24hour = meas['time']
                 prod_24_hour = meas['producedWh']
                 cons_24_hour = meas['consumedWh']
-        if  update_time != t_1hour:
+        remove_list = []
+        for indx, meas in enumerate (self.accum_data[breaker_id]):
+            if meas['time'] < t_24hour:
+                remove_list.append(meas)
+        for indx, meas in enumerate(remove_list):
+            self.accum_data[breaker_id].remove(meas)
+
+
+        if  update_time != t_1hour and hour_ok:
             self.span_data['circuit_info'][breaker_id]['prod_1hour'] = (produced_energy-prod_1_hour)*3600/(update_time-t_1hour)
             self.span_data['circuit_info'][breaker_id]['cons_1hour'] = (consumed_energy-cons_1_hour)*3600/(update_time-t_1hour)
+            logging.debug(f'1 hour average: prod {produced_energy} - {prod_1_hour} - cons {consumed_energy} - {cons_1_hour} - time {update_time}-{t_1hour}')
         else:
             self.span_data['circuit_info'][breaker_id]['prod_1hour'] = None
             self.span_data['circuit_info'][breaker_id]['cons_1hour'] = None
-        if  update_time != t_24hour:
+        if  update_time != t_24hour and day_ok:
             self.span_data['circuit_info'][breaker_id]['prod_24hour'] = (produced_energy-prod_24_hour)*24*3600/(update_time-t_24hour)
             self.span_data['circuit_info'][breaker_id]['cons_24hour'] = (consumed_energy-cons_24_hour)*24*3600/(update_time-t_24hour)
+            logging.debug(f'24 hour average: prod {produced_energy} - {prod_24_hour} - cons {consumed_energy} - {cons_24_hour} - time {update_time}-{t_24hour}')
         else:
             self.span_data['circuit_info'][breaker_id]['prod_24hour'] = None
             self.span_data['circuit_info'][breaker_id]['cons_24hour'] = None
@@ -378,8 +394,6 @@ class SpanAccess(object):
         completeUrl = self.yourApiEndpoint + url
 
         headers = {
-            'Content-Type': 'application/json',
-            'accept': 'application/json',
             'Authorization': f"Bearer { accessToken }"
         }
 
