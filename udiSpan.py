@@ -16,7 +16,7 @@ except ImportError:
     logging.basicConfig(level=30)
 
 
-VERSION = '0.0.3'
+VERSION = '0.1.0'
 class SPANController(udi_interface.Node):
     from  udiLib import node_queue, wait_for_node_done, random_string, mask2key, heartbeat, bool2ISY, my_setDriver
 
@@ -36,12 +36,13 @@ class SPANController(udi_interface.Node):
         self.n_queue = []
         self.span_panel = {}
         self.span_ip_list = []
+        self.battery_backup = False
+        self.hb = 0
 
         self.customParameters = Custom(self.poly, 'customparams')
         self.customData = Custom(self.poly, 'customdata')
         self.Notices = Custom(self.poly, 'notices')
-
-        
+       
         logging.debug('before subscribe')
         self.poly.subscribe(self.poly.STOP, self.stop)
         self.poly.subscribe(self.poly.CUSTOMPARAMS, self.customParamsHandler)
@@ -51,7 +52,6 @@ class SPANController(udi_interface.Node):
         self.poly.subscribe(self.poly.LOGLEVEL, self.handleLevelChange)
         self.poly.subscribe(self.poly.NOTICES, self.handleNotices)
         self.poly.subscribe(self.poly.POLL, self.systemPoll)
-
 
         logging.debug('self.address : ' + str(self.address))
         logging.debug('self.name :' + str(self.name))
@@ -74,8 +74,6 @@ class SPANController(udi_interface.Node):
         self.poly.updateProfile()
         logging.debug('finish Init ')
         
-
-
     
     def customDataHandler(self, Data):
         logging.debug('customDataHandler')
@@ -120,9 +118,23 @@ class SPANController(udi_interface.Node):
         else:
             logging.warning('No LOCAL_IP_ADDRESS found')
             self.customParameters['LOCAL_IP_ADDRESS'] = 'enter list of LOCAL_IP_ADDRESSES (one per panel)'
-            self.LOCAL_IP_ADDRESS = None
+            self.span_ip_list = []
         logging.debug('customParamsHandler finish ')
         self.customParam_done = True
+
+        if 'BACKUP_BATTERY' in self.customParameters:
+            if self.customParameters['BACKUP_BATTERY'] != 'TRUE/FALSE':
+                self.battery_backup =  self.customParameters['BACKUP_BATTERY'][0].upper() == 'T'
+                #oauthSettingsUpdate['client_secret'] = self.customParameters['clientSecret']
+                #secret_ok = True
+        else:
+            logging.warning('No BACKUP_BATTERYS found')
+            self.customParameters['BACKUP_BATTERY'] = 'TRUE/FALSE'
+            self.battery_backup = False
+        logging.debug('customParamsHandler finish ')
+        self.customParam_done = True
+
+
 
     def addNodeDoneHandler(self, node):
         pass
@@ -198,13 +210,13 @@ class SPANController(udi_interface.Node):
             self.poly.Notices.clear()
 
             logging.debug(f'Panel info : {address} , {nodename}')
-            self.span_panel[indx] = udiSpanPanelNode(self.poly, address, address, nodename, IPaddress, token)    
+            self.span_panel[IPaddress] = udiSpanPanelNode(self.poly, address, address, nodename, IPaddress, token, self.battery_backup)    
             # need to retrieve unique ID and Token and store in customData          
             
   
             assigned_addresses.append(address)
      
-        
+    
         while not self.config_done:
             time.sleep(5)
         
@@ -243,35 +255,35 @@ class SPANController(udi_interface.Node):
             node_adr.update_data()
         if self.initialized:    
             if 'longPoll' in pollList:
-                self.longPoll()
-            elif 'shortPoll' in pollList and 'longPoll' not in pollList:
+                pass
+                #self.longPoll()
+            elif 'shortPoll' in pollList: #and 'longPoll' not in pollList:
                 self.shortPoll()
         else:
             logging.info('Waiting for system/nodes to initialize')
         '''
         
     def shortPoll(self):
-        logging.info('Tesla Power Wall Controller shortPoll')
-        self.heartbeat()
-        
+        logging.info('SpanIO Controller shortPoll')
+        self.heartbeat()        
         for node in self.poly.nodes():
             if node.node_ready():
                 logging.debug('short poll node loop {} - {}'.format(node.name, node.node_ready()))
                 node.updateISYdrivers()
             else:
-                logging.info('Problem polling data from Tesla system - {} may not be ready yet'.format(node.name))
+                logging.info('Problem polling data from SpanIO system - {} may not be ready yet'.format(node.name))
 
     def longPoll(self):
-        logging.info('Tesla Power Wall Controller longPoll')
-        for indx, node_adr in enumerate(self.span_panel):
-            node_adr.update_data_averages()
+        logging.info('SpanIO Controller longPoll - No function')
+        #for indx, IPaddress in enumerate(self.span_panel):
+        #    self.span_panel[IPaddress].update_data_averages()
             
-        for node in self.poly.nodes():
-            logging.debug('long poll node loop {} - {}'.format(node.name, node.node_ready()))
-            if node.node_ready():
-                node.updateISYdrivers()
-            else:
-                logging.info('Problem polling data from Tesla system - {} may not be ready yet'.format(node.name))
+        #for node in self.poly.nodes():
+        #    logging.debug('long poll node loop {} - {}'.format(node.name, node.node_ready()))
+        #    if node.node_ready():
+        #        node.updateISYdrivers()
+        #    else:
+        #        logging.info('Problem polling data from SpanIO system - {} may not be ready yet'.format(node.name))
     
     def node_ready(self):
         logging.debug(' main node ready {} '.format(self.initialized ))
@@ -279,20 +291,18 @@ class SPANController(udi_interface.Node):
     
 
     def updateISYdrivers(self):
-        logging.debug('System updateISYdrivers')       
-        
+        #logging.debug('System updateISYdrivers')       
+        pass
         '''
 
         #logging.debug('CTRL Update ISY drivers : GV2  value:' + str(value) )
 
         '''
         
-    def update_data(self, site_id, level):
-        pass   
 
     def ISYupdate (self, command):
         logging.debug('ISY-update called')
-        self.longPoll()
+        self.systemPoll()
 
 
     id = 'controller'

@@ -73,6 +73,7 @@ class SpanAccess(object):
             code, circuits = self.getSpanCircuitsInfo()
             if code == 200:
                self.span_data['circuit_info'] = circuits
+               self.update_Accum_Energy()
             else:
                 self.span_data['circuit_info'] =  None
             return(code )
@@ -106,7 +107,13 @@ class SpanAccess(object):
         cons_1_hour = consumed_energy
         prod_24_hour =produced_energy
         cons_24_hour = consumed_energy
+        hour_ok = False
+        day_ok = False
         for indx, meas in enumerate (self.accum_data[breaker_id]):
+            if meas['time'] <= time_1_hour:
+                hour_ok = True
+            if meas['time'] <= time_24_hour:
+                day_ok = True
             if (abs(meas['time'] - time_1_hour) < abs(t_1hour-time_1_hour)):
                 t_1hour = meas['time']
                 prod_1_hour = meas['producedWh']
@@ -134,6 +141,23 @@ class SpanAccess(object):
                                                                             self.span_data['circuit_info'][breaker_id]['cons_24hour']))
 
 
+        if  update_time != t_1hour and hour_ok:
+            self.span_data['circuit_info'][breaker_id]['prod_1hour'] = (produced_energy-prod_1_hour)*3600/(update_time-t_1hour)
+            self.span_data['circuit_info'][breaker_id]['cons_1hour'] = (consumed_energy-cons_1_hour)*3600/(update_time-t_1hour)
+            logging.debug(f'1 hour average: prod {produced_energy} - {prod_1_hour} - cons {consumed_energy} - {cons_1_hour} - time {update_time}-{t_1hour}')
+        else:
+            self.span_data['circuit_info'][breaker_id]['prod_1hour'] = None
+            self.span_data['circuit_info'][breaker_id]['cons_1hour'] = None
+        if  update_time != t_24hour and day_ok:
+            self.span_data['circuit_info'][breaker_id]['prod_24hour'] = (produced_energy-prod_24_hour)*24*3600/(update_time-t_24hour)
+            self.span_data['circuit_info'][breaker_id]['cons_24hour'] = (consumed_energy-cons_24_hour)*24*3600/(update_time-t_24hour)
+            logging.debug(f'24 hour average: prod {produced_energy} - {prod_24_hour} - cons {consumed_energy} - {cons_24_hour} - time {update_time}-{t_24hour}')
+        else:
+            self.span_data['circuit_info'][breaker_id]['prod_24hour'] = None
+            self.span_data['circuit_info'][breaker_id]['cons_24hour'] = None
+
+
+            
     def get1HourAverage(self, breaker_id):
         logging.debug(f'get1HourAverage {breaker_id}')
         return(self.span_data['circuit_info'][breaker_id]['prod_1hour'], self.span_data['circuit_info'][breaker_id]['cons_1hour'] )
@@ -148,6 +172,7 @@ class SpanAccess(object):
             code, breaker_info = self.getSpanBreakerInfo(breaker_id)
             if code == 200:
                self.span_data['circuit_info'][breaker_id] = breaker_info
+               self.update_Accum_EnergyBreaker(breaker_id)
             else:
                 self.span_data['circuit_info'][breaker_id]  = None
             return(code )
@@ -281,6 +306,7 @@ class SpanAccess(object):
         logging.debug(f'return {code}, {return_data}')
         if code == 200:
             self.span_data['circuit_info'][breaker_id] = return_data
+        return(code == 200)
 
     def set_breaker_priority(self, breaker_id, priority):
         logging.debug(f'set_breaker_priority {breaker_id} {priority}')
@@ -297,7 +323,7 @@ class SpanAccess(object):
         logging.debug(f'setBreakerState {id}  {state}')
         if state in ['OPEN', 'CLOSED']:
             data =  {
-                    'relay_state_in':{'relayState':state}
+                    "relayStateIn":{"relayState":str(state)}
                     }                
             code, breaker_info = self._callApi('POST', '/circuits/'+str(id), data)
             return(code, breaker_info)
@@ -308,7 +334,7 @@ class SpanAccess(object):
         logging.debug(f'setBreakerState {id}  {priority}')
         if priority in ['MUST_HAVE', 'NICE_TO_HAVE', 'NOT_ESSENTIAL' ]:
             data =  {
-                    'relay_state_in':{'relayState':priority}
+                    "priorityIn":{"priority":str(priority)}
                     }                
             code, breaker_info = self._callApi('POST', '/circuits/'+str(id), data)
             return(code, breaker_info)

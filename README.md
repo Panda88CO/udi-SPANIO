@@ -1,44 +1,29 @@
-# udi-TeslaPW  -  for Polyglot v3 
+# udi-SpanIO -  for Polyglot v3 
 
-## Tesla PW Node server
-# udi-TeslaPW  -  for Polyglot PG3x
-## Power wall Node server
+## SpanIO power Panel Node server
+# udi-TeSpanIO  -  for Polyglot PG3x
+## SpanIO Node server
 
-This is a updated version of the Tesla Powerwall Node Server.  It utilizes the official Tela API now.  At this time there is no cost to use the API but users may be throttled if the poll too often.  Note, there could be a charge to use the API in the future.
+This node server enables , monitors and controls of one or more SpanIO power panels in a system.
+The nodes uses an unofficial derived API for local access to the panel - documentation exist at https://gist.github.com/hyun007/c689fbed10424b558f140c54851659e3 although it is not 100% up to date.
 
-The server should be able to support multiple power walls when using cloud (same credentials) - local can only be 1 server at the time.  This has only been tester witha  single powerwall setup as 
+The node creates a separate node used to show the node is running and the number of SpanIO panels in the system.  Each panel is instantiated as a main node (named as IP address without '.'s).  Each group (one or more breakers) are created as a sub-note.  The node allows opening and closing the breaker (relay in the panel - not the main breaker).  The API supposedly supports changing the priority of the breaker, but in generates an internal error, so it is not exposed t user
+The configuration takes a list of IP addresses (space separated) - Only use 1 per panel (ideally ethernet if available).  It is important that the IP address does not change.  There is also a flag to enable reading of a backup battery (percentage) if supported 
 
-This node server requires PG3x to run - it will not run on PG3
-
-To install one must configure the region of the server (NA,EU or CN).  If local access is also desired, the relevant parameters must be specified as well 
-The following limits exist:
-
-5 call to power wall control per day
-100K data requests per power wall system per day 
-
-Once starting the server will requests authentication and the user must follow the login request in the web page (from Tesla) and then allow access to data.  
-
-There is one main node with overall info 
-Each power wall system has it own node with setup and history sub-nodes.
-Most of parameters are the same as previous node, but there have been some updates to allow the use of official API
-
-## Code
-The cloud portion of the server uses the official Tesla API (https://developer.tesla.com/docs/fleet-api#energy-endpoints)
-The local data is based on API (not officeial) https://github.com/jrester/tesla_powerwall API - not official Tesla API 
-
+The nodes provides power consumption data, breaker state as well as some connection status information.  Exported Energy 
 
 ## Installation
-To run node server user must first select data source - from Local Power Wall and/or Tesla Cloud. 
-For local access:
-Enter IP address and user_eamil/password for local and user_email/password as well as set local_sccess to True
+To register the panel(s), one must start the node and then go to the panel, open the door and press the door contact (upper corner) 3 times (quickly) - the panel should then blink the light and it will go into register mode. Do this for all panels if more than 1 panel is installed 
 
-For cloud access:
-Enter region for the power wall (NA, EU or CN) and set cloud_access to True. Save and press Authentication. Follow inpt procesure and allow access to data 
+After this nodes will be generated and til will start operating.   
 
 ## Notes 
+The node has not been tested with ore than 1 SpanIO panel - there are likely bugs
+Power on the breaker results in 2 numbers a for energy - Exported and Imported (Exported is exported from breaker panel to house circuits) - Imported energy is a return flow (My guess)
+Energy last Hour/Day will not show data until the node has been running for a hour/day
 
 shortPoll updates critical parameters (and issues a heartbeat)
-longPoll updates all parameters
+longPoll Not used 
 
 
 

@@ -14,11 +14,7 @@
   <editor id = "SET_OPENCLOSE" > 
      <range  uom="25" subset="0-1" nls="OPENCLOSE" />
   </editor>
-  <editor id = "MISS" > 
-      <range  uom="55" min="0" max="255" prec="0" />
-      <range uom="25" subset="98-99" nls="error" />
-  </editor>     
-    <editor id = "KW" > 
+  <editor id = "KW" > 
      <range uom="30" min="-100" max="100" prec="1" />
      <range uom="25" subset="98-99" nls="NODATA" />
   </editor>
@@ -61,7 +57,7 @@
   </editor>
   <editor id = "PERCENT" > 
      <range  uom="51" min="0" max="100" prec="0" />
-     <range uom="25" subset="98-99" nls="error" />
+     <range uom="25" subset="97-99" nls="error"/>
   </editor>
 
 

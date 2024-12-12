@@ -32,16 +32,16 @@ ST-nlsspancircuit-GV2-NAME = Instantaneous Power
 ST-nlsspancircuit-GV4-NAME = Time Since Power Measurement
 ST-nlsspancircuit-GV5-NAME = Imported Energy
 ST-nlsspancircuit-GV6-NAME = Exported Energy
-ST-nlsspancircuit-GV7-NAME = Energy last hour (avg)
-ST-nlsspancircuit-GV8-NAME = Energy lasy day (avg)
+ST-nlsspancircuit-GV7-NAME = Energy last hour 
+ST-nlsspancircuit-GV8-NAME = Energy last 24 hours
 ST-nlsspancircuit-GV9-NAME = Time Since Energy Measurement
 
 CMD-nlsspancircuit-UPDATE-NAME = Update Panels Data
 
 CMD-nlsspancircuit-OPENCLOSE-NAME = Set State
-CMDP-nlsspancircuit-openclose-NAME = Breaker State
+CMDP-openclose-NAME = Breaker State
 CMD-nlsspancircuit-PRIORITY-NAME = Set Priority
-CMDP-nlsspancircuit-priority-NAME = Breaker Priority
+CMDP-priority-NAME = Breaker Priority
 PRIORITY-0 = Must Have
 PRIORITY-1 = Nice to Have
 PRIORITY-2 = Not Essential
@@ -58,3 +58,10 @@ GRIDSTATE-99 = Unknown
 GRIDSTATUS-0 = ON_GRID
 GRIDSTATUS-1 = OFF_GRID
 GRIDSTATUS-99 = Unknown
+
+NODATA-98 = Error
+NODATA-99 = No Data
+
+error-97 = No Data 
+error-98 = Unknown
+error-99 = Not Present

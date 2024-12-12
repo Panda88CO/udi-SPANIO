@@ -87,9 +87,9 @@
             <cmd id="OPENCLOSE" > 
                <p id="openclose" editor="SET_OPENCLOSE" init="ST" />                
              </cmd >
-            <cmd id="PRIORITY" > 
+            <!--<cmd id="PRIORITY" > 
                <p id="priority" editor="SET_PRIORITY" init="GV1" />                
-             </cmd >
+             </cmd > -->
          </accepts>
       </cmds>
    </nodeDef> 

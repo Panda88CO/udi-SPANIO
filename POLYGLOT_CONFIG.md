@@ -1,21 +1,9 @@
-# teslaPW
+# SpanIO
 
 ## Installation
-For local access to PowerWall the local IP address (LOCAL_IP_ADDRESS) along with login  (LOCAL_USER_EMAIL) and password (LOCAL_USER_PASSWORD) must be added in configuration
+The configuration (configuration tab under details) takes a list of IP addresses (space separated) - Only use 1 per panel (ideally ethernet if available).  It is important that the IP address does not change.  There is also a flag to enable reading of a backup battery (percentage) if supported 
 
-It may be necesary to power cycle (turn power wall on and off using the switch on the local power wall) - 
+Start node after updating the configuration
 
-Cloud access is now accessible through the node server directly by clicking authentication button (after config).  The login will appear similar to the tesla website.  User must grant node server access to data.  The following scopes are used granted access:
-
-energy_device_data 
-energy_cmds 
-open_id 
-offline_access
-
-Once installed a status node for each EV registered in the user account is created with sub-nodes for each EV addressing charging and climate control.
-
-If additional functionality is desired contact the author through github - https://github.com/Panda88CO/udi-TeslaPW
-
-Enjoy
-
+To register the panel(s), one must start the node and then go to the panel, open the door and press the door contact (upper corner) 3 times (quickly) - the panel should then blink the light and it will go into register mode. Do this for all panels if more than 1 panel is installed 
 
