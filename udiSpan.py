@@ -302,7 +302,7 @@ class SPANController(udi_interface.Node):
 
     def ISYupdate (self, command):
         logging.debug('ISY-update called')
-        self.systemPoll()
+        self.shortPoll()
 
 
     id = 'controller'
