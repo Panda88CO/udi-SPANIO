@@ -164,7 +164,7 @@ class SpanAccess(object):
             
     def get1HourAverage(self, breaker_id):
         logging.debug(f'get1HourAverage {breaker_id}')
-        logging.debug('{} produc : {}, cons {}, {}'.format(breaker_id, self.span_data['circuit_info'][breaker_id]['prod_1hour'], self.span_data['circuit_info'][breaker_id]['cons_1hour'],self.span_data['circuit_info'][breaker_id]['prod_1hour']-self.span_data['circuit_info'][breaker_id]['cons_1hour'] ))
+        logging.debug('{} prod : {}, cons {}, {}'.format(breaker_id, self.span_data['circuit_info'][breaker_id]['prod_1hour'], self.span_data['circuit_info'][breaker_id]['cons_1hour'],self.span_data['circuit_info'][breaker_id]['prod_1hour']-self.span_data['circuit_info'][breaker_id]['cons_1hour'] ))
         return(self.span_data['circuit_info'][breaker_id]['prod_1hour'], self.span_data['circuit_info'][breaker_id]['cons_1hour'] )
 
     def get24HourAverage(self, breaker_id):
