@@ -92,7 +92,7 @@ class udiSpanPanelNode(udi_interface.Node):
 
     def updateISYdrivers(self):
         logging.debug('Span Panel updateISYdrivers')
-        logging.debug(f'data: {self.span_panel.span_data}')
+        #logging.debug(f'data: {self.span_panel.span_data}')
         self.my_setDriver('ST', self.openClose2ISY(self.span_panel.get_main_panel_breaker_state()))
         self.my_setDriver('GV0', self.openClose2ISY(self.span_panel.get_panel_door_state()))
         self.my_setDriver('GV1', round(self.span_panel.get_instant_grid_power(),2), 73)

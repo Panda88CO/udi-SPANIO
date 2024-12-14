@@ -148,14 +148,14 @@ class SpanAccess(object):
         if  update_time != t_1hour and hour_ok:
             self.span_data['circuit_info'][breaker_id]['prod_1hour'] = (produced_energy-prod_1_hour)*3600/(update_time-t_1hour)
             self.span_data['circuit_info'][breaker_id]['cons_1hour'] = (consumed_energy-cons_1_hour)*3600/(update_time-t_1hour)
-            logging.debug(f'{breaker_id} 1 hour average: prod {produced_energy} - {prod_1_hour} - cons {consumed_energy} - {cons_1_hour} - time {update_time-t_1hour}')
+            #logging.debug(f'{breaker_id} 1 hour average: prod {produced_energy} - {prod_1_hour} - cons {consumed_energy} - {cons_1_hour} - time {update_time-t_1hour}')
         else:
             self.span_data['circuit_info'][breaker_id]['prod_1hour'] = None
             self.span_data['circuit_info'][breaker_id]['cons_1hour'] = None
         if  update_time != t_24hour and day_ok:
             self.span_data['circuit_info'][breaker_id]['prod_24hour'] = (produced_energy-prod_24_hour)*24*3600/(update_time-t_24hour)
             self.span_data['circuit_info'][breaker_id]['cons_24hour'] = (consumed_energy-cons_24_hour)*24*3600/(update_time-t_24hour)
-            logging.debug(f'{breaker_id}  24 hour average: prod {produced_energy} - {prod_24_hour} - cons {consumed_energy} - {cons_24_hour} - time {update_time-t_24hour}')
+            #logging.debug(f'{breaker_id}  24 hour average: prod {produced_energy} - {prod_24_hour} - cons {consumed_energy} - {cons_24_hour} - time {update_time-t_24hour}')
         else:
             self.span_data['circuit_info'][breaker_id]['prod_24hour'] = None
             self.span_data['circuit_info'][breaker_id]['cons_24hour'] = None
@@ -164,7 +164,7 @@ class SpanAccess(object):
             
     def get1HourAverage(self, breaker_id):
         logging.debug(f'get1HourAverage {breaker_id}')
-        logging.debug('{} prod : {}, cons {}'.format(breaker_id, self.span_data['circuit_info'][breaker_id]['prod_1hour'], self.span_data['circuit_info'][breaker_id]['cons_1hour']))
+        #logging.debug('{} prod : {}, cons {}'.format(breaker_id, self.span_data['circuit_info'][breaker_id]['prod_1hour'], self.span_data['circuit_info'][breaker_id]['cons_1hour']))
 
         return(self.span_data['circuit_info'][breaker_id]['prod_1hour'], self.span_data['circuit_info'][breaker_id]['cons_1hour'] )
 
@@ -301,7 +301,7 @@ class SpanAccess(object):
             produced_energy =  self.span_data['circuit_info'][breaker_id]['producedEnergyWh']
             consumed_energy = self.span_data['circuit_info'][breaker_id]['consumedEnergyWh'] 
             delay_time = int(time.time() -self.span_data['circuit_info'][breaker_id]['energyAccumUpdateTimeS'])
-            logging.debug(f'{breaker_id} get_breaker_energy_info {produced_energy} {consumed_energy} {delay_time}')
+            #logging.debug(f'{breaker_id} get_breaker_energy_info {produced_energy} {consumed_energy} {delay_time}')
             return(produced_energy, consumed_energy, delay_time)
         except Exception as e:
             return(None)    
@@ -419,7 +419,7 @@ class SpanAccess(object):
 
         if method in [ 'PATCH', 'POST'] and body is None:
             logging.error(f"body is required when using { method } { completeUrl }")
-        logging.debug(' call info url={}, header= {}, body = {}'.format(completeUrl, headers, body))
+        #logging.debug(' call info url={}, header= {}, body = {}'.format(completeUrl, headers, body))
 
         try:
             if method == 'GET':
