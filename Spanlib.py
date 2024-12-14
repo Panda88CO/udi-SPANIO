@@ -129,7 +129,7 @@ class SpanAccess(object):
         for indx, meas in enumerate(delete_list):
              self.accum_data[breaker_id].remove(meas)
              logging.debug(f'remove meas {meas} , {time.time()-daySec} ')
-
+        logging.debug(f'size of accum_data {len(self.accum_data[breaker_id])}')
 
         '''     
         if update_time == t_1hour:
