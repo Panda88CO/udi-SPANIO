@@ -70,12 +70,13 @@ class udiSpanCircuitNode(udi_interface.Node):
         self.my_setDriver('GV5', round(imp_wh, 2), 119 ) 
         self.my_setDriver('GV6', round(exp_wh, 2), 119 )   
         producedWh, consumerWh = self.span_panel.get1HourAverage(self.circuit)
-        if producedWh  and consumerWh:
+        
+        if type(producedWh) in (int, float) and type(consumerWh) in (int, float):            
             self.my_setDriver('GV7', round((producedWh- consumerWh),2), 119)
         else:
             self.my_setDriver('GV7', None, 25)
         producedWh, consumerWh = self.span_panel.get24HourAverage(self.circuit)   
-        if producedWh  and consumerWh:                             
+        if type(producedWh) in (int, float) and type(consumerWh) in (int, float):                                  
             self.my_setDriver('GV8', round((producedWh- consumerWh),2), 119) 
         else:
             self.my_setDriver('GV8', None, 25)           
