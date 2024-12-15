@@ -36,7 +36,7 @@ ST-nlsspancircuit-GV7-NAME = Energy last hour
 ST-nlsspancircuit-GV8-NAME = Energy last 24 hours
 ST-nlsspancircuit-GV9-NAME = Time Since Energy Measurement
 
-CMD-nlsspancircuit-UPDATE-NAME = Update Panels Data
+CMD-nlsspancircuit-UPDATE-NAME = Update Breaker Data
 
 CMD-nlsspancircuit-OPENCLOSE-NAME = Set State
 CMDP-openclose-NAME = Breaker State
