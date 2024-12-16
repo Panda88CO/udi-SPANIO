@@ -84,7 +84,7 @@ def bool2Nbr(self, bool):
     else:
         return(None)
     
-def round2ISY(self,nbr, res):
+def round2ISY(self, nbr, res):
     if isinstance(nbr, numbers.Number):
         return(round(nbr, res))
     else:

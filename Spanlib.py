@@ -2,7 +2,7 @@
 
 import requests
 import time
-import urllib.parse
+import json
 from datetime import datetime, timezone
 
 try:
@@ -73,7 +73,7 @@ class SpanAccess(object):
             code, circuits = self.getSpanCircuitsInfo()
             if code == 200:
                self.span_data['circuit_info'] = circuits
-               self.update_Accum_Energy()
+
             else:
                 self.span_data['circuit_info'] =  None
             return(code )
@@ -81,7 +81,7 @@ class SpanAccess(object):
             logging.error(f'EXCEPTION: update_battery_info: {e}')
             return(None)
 
-    def update_Accum_Energy(self, breaker_id = None):
+    def update_Accum_Energy(self, breaker_id = None, save_to_file = False):
         logging.debug(f'update_Accum_Energy {breaker_id}')
         if breaker_id == None:
             for breaker_id in self.span_data['circuit_info']:
@@ -89,7 +89,13 @@ class SpanAccess(object):
         else:
             self.update_Accum_EnergyBreaker(breaker_id)
 
-    def update_Accum_EnergyBreaker(self, breaker_id):
+        if save_to_file:
+            f = open(str(self.IP_address)+'json', 'w')
+            f.write(str(json.dumps( self.accum_data)))
+            f.close()
+
+
+    def update_Accum_EnergyBreaker(self, breaker_id, ):
         hourSec = 3600 # 60*60
         daySec = 86400 # 60*60*24
         logging.debug(f'update_Accum_Energy {breaker_id}')
@@ -130,6 +136,7 @@ class SpanAccess(object):
              self.accum_data[breaker_id].remove(meas)
              logging.debug(f'remove meas {meas} , {time.time()-daySec} ')
         logging.debug(f'size of accum_data {len(self.accum_data[breaker_id])}')
+
 
         '''     
         if update_time == t_1hour:
@@ -190,12 +197,14 @@ class SpanAccess(object):
         logging.debug(f'updateSpanData ({self.IP_address})')
         self.update_panel_status()
         logging.debug('panel status {}'.format(self.span_data['status']))
-        self.update_panel_info()     
+        self.update_panel_info()
         logging.debug('panel info {}'.format(self.span_data['panel_info']))
         self.update_battery_info()
         logging.debug('battery info {}'.format(self.span_data['battery_info']))
-        self.update_circuit_info()        
+        self.update_circuit_info()
         logging.debug('circuit info {}'.format(self.span_data['circuit_info']))
+        
+        self.update_Accum_Energy(None, True)
 
     def get_panel_door_state(self):
         logging.debug('get_panel_door_state')
