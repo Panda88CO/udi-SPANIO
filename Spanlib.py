@@ -90,7 +90,7 @@ class SpanAccess(object):
             self.update_Accum_EnergyBreaker(breaker_id)
 
         if save_to_file:
-            f = open(str(self.IP_address)+'json', 'w')
+            f = open(str(self.IP_address)+'.json', 'w')
             f.write(str(json.dumps( self.accum_data)))
             f.close()
 
