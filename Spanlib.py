@@ -193,6 +193,21 @@ class SpanAccess(object):
             logging.error(f'EXCEPTION: update_panel_breaker_info: {e}')
             return(None)
 
+
+    def update_critical_span_data(self):
+        logging.debug(f'updateSpanData ({self.IP_address})')
+        #self.update_panel_status()
+        #logging.debug('panel status {}'.format(self.span_data['status']))
+        self.update_panel_info()
+        logging.debug('panel info {}'.format(self.span_data['panel_info']))
+        self.update_battery_info()
+        logging.debug('battery info {}'.format(self.span_data['battery_info']))
+        #self.update_circuit_info()
+        #logging.debug('circuit info {}'.format(self.span_data['circuit_info']))
+        
+        self.update_Accum_Energy(None, True)
+
+
     def update_span_data(self):
         logging.debug(f'updateSpanData ({self.IP_address})')
         self.update_panel_status()

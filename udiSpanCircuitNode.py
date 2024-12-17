@@ -53,8 +53,6 @@ class udiSpanCircuitNode(udi_interface.Node):
     def node_ready(self):
         return(self.node_ok)
 
-
-
     def update_data(self):
         code = self.span_panel.update_panel_breaker_info(self.circuit )
 

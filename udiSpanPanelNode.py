@@ -71,12 +71,37 @@ class udiSpanPanelNode(udi_interface.Node):
     def systemPoll(self, pollList):
         logging.info(f'systemPoll {self.span_ipadr }')
         if self.node_ok:
+            if 'longPoll' in pollList:
+                #pass
+                self.longPoll()
+            elif 'shortPoll' in pollList and 'longPoll' not in pollList:
+                self.shortPoll()
+        else:
+            logging.info('Waiting for system/nodes to initialize')
+
             self.update_data()   
+
+
             self.updateISYdrivers()
             for circuit in self.circuit_access:
                 self.circuit_access[circuit].updateISYdrivers()
 
-       
+    def update_critical_data(self):
+        logging.debug(f'update_critical_data {self.span_ipadr }')
+        self.span_panel.update_critical_span_data()
+
+    def shortPoll(self):
+        logging.debug(f'shortPoll {self.span_ipadr }')
+        self.update_critical_data()
+        self.updateISYdrivers()
+
+    def longPoll(self):
+        logging.debug(f'longPoll {self.span_ipadr }')
+        self.update_data()   
+        self.updateISYdrivers()
+        for circuit in self.circuit_access:
+            self.circuit_access[circuit].updateISYdrivers()
+
     def update_data(self):
         self.span_panel.update_span_data()
                  

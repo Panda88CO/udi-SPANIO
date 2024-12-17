@@ -16,7 +16,7 @@ except ImportError:
     logging.basicConfig(level=30)
 
 
-VERSION = '0.1.4'
+VERSION = '0.1.5'
 class SPANController(udi_interface.Node):
     from  udiLib import node_queue, wait_for_node_done, random_string, mask2key, heartbeat, bool2ISY, my_setDriver
 
@@ -262,16 +262,16 @@ class SPANController(udi_interface.Node):
         else:
             logging.info('Waiting for system/nodes to initialize')
         '''
-        
+    '''
     def shortPoll(self):
         logging.info('SpanIO Controller shortPoll')
         self.heartbeat()        
-        for node in self.poly.nodes():
-            if node.node_ready():
-                logging.debug('short poll node loop {} - {}'.format(node.name, node.node_ready()))
-                node.updateISYdrivers()
-            else:
-                logging.info('Problem polling data from SpanIO system - {} may not be ready yet'.format(node.name))
+        #for node in self.poly.nodes():
+        #    if node.node_ready():
+        #        logging.debug('short poll node loop {} - {}'.format(node.name, node.node_ready()))
+        #        node.updateISYdrivers()
+        #    else:
+        #        logging.info('Problem polling data from SpanIO system - {} may not be ready yet'.format(node.name))
 
     def longPoll(self):
         logging.info('SpanIO Controller longPoll - No function')
@@ -284,7 +284,7 @@ class SPANController(udi_interface.Node):
         #        node.updateISYdrivers()
         #    else:
         #        logging.info('Problem polling data from SpanIO system - {} may not be ready yet'.format(node.name))
-    
+    '''
     def node_ready(self):
         logging.debug(' main node ready {} '.format(self.initialized ))
         return(self.initialized)

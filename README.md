@@ -22,8 +22,7 @@ The node has not been tested with ore than 1 SpanIO panel - there are likely bug
 Power on the breaker results in 2 numbers a for energy - Exported and Imported (Exported is exported from breaker panel to house circuits) - Imported energy is a return flow (My guess)
 Energy last Hour/Day will not show data until the node has been running for a hour/day
 
-shortPoll updates critical parameters (and issues a heartbeat)
-longPoll Not used 
-
+shortPoll updates critical parameters and issues a heartbeat for each panel(Connection to grid and battery % - no update on circuits) 
+longPoll updates all data for each panel 
 
 
