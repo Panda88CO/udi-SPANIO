@@ -79,12 +79,12 @@ class udiSpanPanelNode(udi_interface.Node):
         else:
             logging.info('Waiting for system/nodes to initialize')
 
-            self.update_data()   
+            #self.update_data()   
+            #self.updateISYdrivers()
+            #for circuit in self.circuit_access:
+                #self.circuit_access[circuit].updateISYdrivers()
 
 
-            self.updateISYdrivers()
-            for circuit in self.circuit_access:
-                self.circuit_access[circuit].updateISYdrivers()
 
     def update_critical_data(self):
         logging.debug(f'update_critical_data {self.span_ipadr }')

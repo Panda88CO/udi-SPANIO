@@ -93,6 +93,12 @@ class SpanAccess(object):
             f = open(str(self.IP_address)+'.json', 'w')
             f.write(str(json.dumps( self.accum_data)))
             f.close()
+            f = open(str(self.IP_address)+'.cvs', 'w')
+            for breaker, data_set in self.accum_data.items():
+                for indx, circuit in enumerate(data_set):
+                    f.write(str(breaker)+','+str(circuit['time'])+','+str(circuit['consumedWh'])+','+str(circuit['producedWh'])+'\n')
+            f.close()
+            
 
 
     def update_Accum_EnergyBreaker(self, breaker_id, ):
@@ -104,6 +110,9 @@ class SpanAccess(object):
         consumed_energy = self.span_data['circuit_info'][breaker_id]['consumedEnergyWh']
         if breaker_id not in self.accum_data:
             self.accum_data[breaker_id] = []
+
+        # check if time is not update - only update if time changed  - Need to add 
+
         self.accum_data[breaker_id].append({'time':update_time, 'producedWh':produced_energy, 'consumedWh':consumed_energy})
         time_1_hour = update_time - hourSec #60*60
         time_24_hour = update_time - daySec #60*60*24
@@ -203,8 +212,7 @@ class SpanAccess(object):
         self.update_battery_info()
         logging.debug('battery info {}'.format(self.span_data['battery_info']))
         #self.update_circuit_info()
-        #logging.debug('circuit info {}'.format(self.span_data['circuit_info']))
-        
+        #logging.debug('circuit info {}'.format(self.span_data['circuit_info']))        
         self.update_Accum_Energy(None, True)
 
 
@@ -217,8 +225,7 @@ class SpanAccess(object):
         self.update_battery_info()
         logging.debug('battery info {}'.format(self.span_data['battery_info']))
         self.update_circuit_info()
-        logging.debug('circuit info {}'.format(self.span_data['circuit_info']))
-        
+        logging.debug('circuit info {}'.format(self.span_data['circuit_info']))        
         self.update_Accum_Energy(None, True)
 
     def get_panel_door_state(self):
