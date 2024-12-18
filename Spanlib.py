@@ -35,7 +35,7 @@ class SpanAccess(object):
             code, status = self.getSpanStatusInfo()
             if code == 200:
                 self.span_data['status'] = status                
-                return(code)
+                return(ConnectionAbortedError)
             else:
                 self.span_data['status'] = None
             return(code)
@@ -149,19 +149,6 @@ class SpanAccess(object):
         logging.debug(f'size of accum_data {len(self.accum_data[breaker_id])}')
 
 
-        '''     
-        if update_time == t_1hour:
-            self.span_data['circuit_info'][breaker_id]['prod_1hour'] = None
-            self.span_data['circuit_info'][breaker_id]['cons_1hour'] = None
-            self.span_data['circuit_info'][breaker_id]['prod_24hour'] = None
-            self.span_data['circuit_info'][breaker_id]['cons_24hour'] = None
-        else:
-            self.span_data['circuit_info'][breaker_id]['prod_1hour'] = (produced_energy-prod_1_hour)*3600/(update_time-t_1hour)
-            self.span_data['circuit_info'][breaker_id]['cons_1hour'] = (consumed_energy-cons_1_hour)*3600/(update_time-t_1hour)
-            self.span_data['circuit_info'][breaker_id]['prod_24hour'] = (produced_energy-prod_24_hour)*3600/(update_time-t_24hour)
-            self.span_data['circuit_info'][breaker_id]['cons_24hour'] = (consumed_energy-cons_24_hour)*3600/(update_time-t_24hour)
-        '''
-
 
         if  update_time != t_1hour and hour_ok:
             self.span_data['circuit_info'][breaker_id]['prod_1hour'] = (produced_energy-prod_1_hour)*3600/(update_time-t_1hour)
@@ -207,8 +194,8 @@ class SpanAccess(object):
 
     def update_critical_span_data(self):
         logging.debug(f'updateSpanData ({self.IP_address})')
-        self.update_panel_status()
-        logging.debug('panel status {}'.format(self.span_data['status']))
+        #self.update_panel_status()
+        #logging.debug('panel status {}'.format(self.span_data['status']))
         self.update_panel_info()
         logging.debug('panel info {}'.format(self.span_data['panel_info']))
         self.update_battery_info()

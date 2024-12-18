@@ -16,7 +16,7 @@ except ImportError:
     logging.basicConfig(level=30)
 
 
-VERSION = '0.1.6'
+VERSION = '0.1.7'
 class SPANController(udi_interface.Node):
     from  udiLib import node_queue, wait_for_node_done, random_string, mask2key, heartbeat, bool2ISY, my_setDriver
 
@@ -292,7 +292,6 @@ class SPANController(udi_interface.Node):
 
     def updateISYdrivers(self):
         #logging.debug('System updateISYdrivers')       
-        self.my_setDriver('GV1', len(self.span_ip_list))
         pass
         '''
 
@@ -303,7 +302,7 @@ class SPANController(udi_interface.Node):
 
     def ISYupdate (self, command):
         logging.debug('ISY-update called')
-        self.systemPoll()
+        self.shortPoll()
 
 
     id = 'controller'
