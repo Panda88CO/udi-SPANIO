@@ -11,14 +11,12 @@ The node creates a separate node used to show the node is running and the number
 The configuration takes a list of IP addresses (space separated) - Only use 1 IPaddress per panel (they have up to 3 IPaddresses per panel) (ideally ethernet if available).  It is important that the IP address does not change.  
 There is also a flag to enable reading of a backup battery (percentage) if supported 
 
-
-
 The nodes provides power consumption data, breaker state as well as some connection status information.  Exported Energy 
 
 ## Installation
 To register the panel(s), one must start the node and then go to the panel, open the door and press the door contact (upper corner) 3 times (quickly) - the panel should then blink the light and it will go into register mode. Do this for all panels if more than 1 panel is installed 
 
-After this nodes will be generated and til will start operating.   
+After this nodes will be generated and will start operating.   
 
 ## Notes 
 The node has not been tested with ore than 1 SpanIO panel - there are likely bugs when using more than 1 - please enable debug and send me log files if there are issues
