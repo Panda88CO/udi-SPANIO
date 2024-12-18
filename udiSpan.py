@@ -292,6 +292,7 @@ class SPANController(udi_interface.Node):
 
     def updateISYdrivers(self):
         #logging.debug('System updateISYdrivers')       
+        self.my_setDriver('GV1', len(self.span_ip_list))
         pass
         '''
 
@@ -302,7 +303,7 @@ class SPANController(udi_interface.Node):
 
     def ISYupdate (self, command):
         logging.debug('ISY-update called')
-        self.shortPoll()
+        self.systemPoll()
 
 
     id = 'controller'

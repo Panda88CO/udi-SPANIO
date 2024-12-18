@@ -35,7 +35,7 @@ class SpanAccess(object):
             code, status = self.getSpanStatusInfo()
             if code == 200:
                 self.span_data['status'] = status                
-                return(ConnectionAbortedError)
+                return(code)
             else:
                 self.span_data['status'] = None
             return(code)
@@ -207,8 +207,8 @@ class SpanAccess(object):
 
     def update_critical_span_data(self):
         logging.debug(f'updateSpanData ({self.IP_address})')
-        #self.update_panel_status()
-        #logging.debug('panel status {}'.format(self.span_data['status']))
+        self.update_panel_status()
+        logging.debug('panel status {}'.format(self.span_data['status']))
         self.update_panel_info()
         logging.debug('panel info {}'.format(self.span_data['panel_info']))
         self.update_battery_info()
