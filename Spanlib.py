@@ -94,9 +94,10 @@ class SpanAccess(object):
             f.write(str(json.dumps( self.accum_data)))
             f.close()
             f = open(str(self.IP_address)+'.cvs', 'w')
-            for breaker, data_set in self.accum_data.items():
-                for indx, circuit in enumerate(data_set):
-                    f.write(str(breaker)+','+str(circuit['time'])+','+str(circuit['consumedWh'])+','+str(circuit['producedWh'])+'\n')
+            f.write('breaker, update_time,consumedWh,producedWh\n')
+            for breaker in self.accum_data:
+                for data_time  in breaker:
+                    f.write(str(breaker)+','+str(data_time['update_time'])+','+str(data_time['consumedWh'])+','+str(data_time['producedWh'])+'\n')
             f.close()
             
 
@@ -113,7 +114,7 @@ class SpanAccess(object):
 
         # check if time is not update - only update if time changed  - Need to add 
 
-        self.accum_data[breaker_id].append({'time':update_time, 'producedWh':produced_energy, 'consumedWh':consumed_energy})
+        self.accum_data[breaker_id][update_time]={'update_time':update_time,'producedWh':produced_energy, 'consumedWh':consumed_energy}
         time_1_hour = update_time - hourSec #60*60
         time_24_hour = update_time - daySec #60*60*24
         t_1hour = update_time
@@ -124,26 +125,27 @@ class SpanAccess(object):
         cons_24_hour = consumed_energy
         hour_ok = False
         day_ok = False
-        for indx, meas in enumerate (self.accum_data[breaker_id]):
-            if meas['time'] <= time_1_hour:
+        for meas_data in self.accum_data[breaker_id]:
+
+            if meas_data['update_time'] <= time_1_hour:
                 hour_ok = True
-            if meas['time'] <= time_24_hour:
+            if meas_data['update_time'] <= time_24_hour:
                 day_ok = True
-            if (abs(meas['time'] - time_1_hour) < abs(t_1hour-time_1_hour)):
-                t_1hour = meas['time']
-                prod_1_hour = meas['producedWh']
-                cons_1_hour = meas['consumedWh']
-            if (abs(meas['time'] - time_24_hour) < abs(t_24hour-time_24_hour)):
-                t_24hour = meas['time']
-                prod_24_hour = meas['producedWh']
-                cons_24_hour = meas['consumedWh']
+            if (abs(meas_data['update_time'] - time_1_hour) < abs(t_1hour-time_1_hour)):
+                t_1hour = meas_data['update_time']
+                prod_1_hour = meas_data['producedWh']
+                cons_1_hour = meas_data['consumedWh']
+            if (abs(meas_data['update_time'] - time_24_hour) < abs(t_24hour-time_24_hour)):
+                t_24hour = meas_data['update_time']
+                prod_24_hour = meas_data['producedWh']
+                cons_24_hour = meas_data['consumedWh']
         delete_list = []
-        for indx, meas in enumerate (self.accum_data[breaker_id]): 
-            if meas['time'] < t_24hour:
-                delete_list.append(meas)
-        for indx, meas in enumerate(delete_list):
-             self.accum_data[breaker_id].remove(meas)
-             logging.debug(f'remove meas {meas} , {time.time()-daySec} ')
+        for meas_data in self.accum_data[breaker_id]: 
+            if meas_data['update_time'] < t_24hour:
+                delete_list.append(meas_data['update_time'])
+        for indx, meas_data in enumerate(delete_list):
+             self.accum_data[breaker_id].pop(meas_data)
+             logging.debug(f'remove meas {meas_data} , {time.time()-daySec} ')
         logging.debug(f'size of accum_data {len(self.accum_data[breaker_id])}')
 
 
