@@ -53,8 +53,8 @@ class SPANController(udi_interface.Node):
         self.poly.subscribe(self.poly.NOTICES, self.handleNotices)
         self.poly.subscribe(self.poly.POLL, self.systemPoll)
 
-        logging.debug('self.address : ' + str(self.address))
-        logging.debug('self.name :' + str(self.name))
+        #logging.debug('self.address : ' + str(self.address))
+        #logging.debug('self.name :' + str(self.name))
         self.hb = 0
 
         self.poly.Notices.clear()
@@ -78,7 +78,7 @@ class SPANController(udi_interface.Node):
     def customDataHandler(self, Data):
         logging.debug('customDataHandler')
         self.customData.load(Data)
-        logging.debug('handleData load - {}'.format(self.customData))
+        #logging.debug('handleData load - {}'.format(self.customData))
     
  
     def check_config(self):
@@ -101,7 +101,7 @@ class SPANController(udi_interface.Node):
 
     def customParamsHandler(self, userParams):
         self.customParameters.load(userParams)
-        logging.debug('customParamsHandler called {}'.format(userParams))
+        #logging.debug('customParamsHandler called {}'.format(userParams))
 
         oauthSettingsUpdate = {}
         #oauthSettingsUpdate['parameters'] = {}
@@ -128,7 +128,7 @@ class SPANController(udi_interface.Node):
                 #oauthSettingsUpdate['client_secret'] = self.customParameters['clientSecret']
                 #secret_ok = True
         else:
-            logging.warning('No BACKUP_BATTERYS found')
+            logging.warning('No BACKUP_BATTERY found')
             self.customParameters['BACKUP_BATTERY'] = 'TRUE/FALSE'
             self.battery_backup = False
         logging.debug('customParamsHandler finish ')
@@ -142,7 +142,7 @@ class SPANController(udi_interface.Node):
         #controller.addNodeDoneHandler(node)
 
     def registerSpanPanel(self, ipAddress, uid):
-        logging.debug(f'registerSpanPanel ({ipAddress}) , ({uid})')
+        #logging.debug(f'registerSpanPanel ({ipAddress}) , ({uid})')
         accessToken = None
         try:       
 
@@ -156,11 +156,11 @@ class SPANController(udi_interface.Node):
             completeUrl = f'http://{ipAddress}/api/v1/auth/register'
 
             response = requests.post(completeUrl, headers=headers, json=data)
-            logging.debug(f'response {response} test {response.text}')
+            #logging.debug(f'response {response} test {response.text}')
 
             if response.status_code == 200:
                 res =  response.json()
-                logging.debug(f'res {res}')
+                #logging.debug(f'res {res}')
                 accessToken = res['accessToken']
             else:
                 return(None)
@@ -177,7 +177,7 @@ class SPANController(udi_interface.Node):
         logging.debug('start SPAN')
         while not self.customParam_done or not self.config_done:
             logging.info('Waiting for node to initialize')
-            logging.debug(' 1 2: {} {}'.format(self.customParam_done , self.config_done))
+            #logging.debug(' 1 2: {} {}'.format(self.customParam_done , self.config_done))
             time.sleep(1)
         #logging.debug('access {} {}'.format(self.local_access_enabled, self.cloud_access_enabled))
         
@@ -200,7 +200,7 @@ class SPANController(udi_interface.Node):
                 token = self.customData[IPaddress]
             else:
                 while token == None:
-                    logging.debug(f'Add panel {IPaddress}  {uid}')
+                    #logging.debug(f'Add panel {IPaddress}  {uid}')
                     token = self.registerSpanPanel(IPaddress, uid)
                     if token != None:
                         self.customData[IPaddress]= token
@@ -223,7 +223,7 @@ class SPANController(udi_interface.Node):
         logging.debug('Checking for existing nodes not used anymore: {}'.format(self.nodes_in_db))
         for nde in range(0, len(self.nodes_in_db)):
             node = self.nodes_in_db[nde]
-            logging.debug('Scanning db for extra nodes : {}'.format(node))
+            #logging.debug('Scanning db for extra nodes : {}'.format(node))
             if node['primaryNode'] not in assigned_addresses:
                 logging.debug('Removing node : {} {}'.format(node['name'], node))
                 self.poly.delNode(node['address'])
@@ -262,29 +262,7 @@ class SPANController(udi_interface.Node):
         else:
             logging.info('Waiting for system/nodes to initialize')
         '''
-    '''
-    def shortPoll(self):
-        logging.info('SpanIO Controller shortPoll')
-        self.heartbeat()        
-        #for node in self.poly.nodes():
-        #    if node.node_ready():
-        #        logging.debug('short poll node loop {} - {}'.format(node.name, node.node_ready()))
-        #        node.updateISYdrivers()
-        #    else:
-        #        logging.info('Problem polling data from SpanIO system - {} may not be ready yet'.format(node.name))
 
-    def longPoll(self):
-        logging.info('SpanIO Controller longPoll - No function')
-        #for indx, IPaddress in enumerate(self.span_panel):
-        #    self.span_panel[IPaddress].update_data_averages()
-            
-        #for node in self.poly.nodes():
-        #    logging.debug('long poll node loop {} - {}'.format(node.name, node.node_ready()))
-        #    if node.node_ready():
-        #        node.updateISYdrivers()
-        #    else:
-        #        logging.info('Problem polling data from SpanIO system - {} may not be ready yet'.format(node.name))
-    '''
     def node_ready(self):
         logging.debug(' main node ready {} '.format(self.initialized ))
         return(self.initialized)
@@ -293,12 +271,7 @@ class SPANController(udi_interface.Node):
     def updateISYdrivers(self):
         #logging.debug('System updateISYdrivers')       
         pass
-        '''
 
-        #logging.debug('CTRL Update ISY drivers : GV2  value:' + str(value) )
-
-        '''
-        
 
     def ISYupdate (self, command):
         logging.debug('ISY-update called')

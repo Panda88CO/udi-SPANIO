@@ -34,7 +34,7 @@ def wait_for_node_done(self):
     self.n_queue.pop()
 
 def mask2key (self, mask):
-    logging.debug('mask2key : {}'.format(mask))
+    #logging.debug('mask2key : {}'.format(mask))
     return(int(round(math.log2(mask),0)))
     
 def daysToMask (self, dayList):
@@ -55,7 +55,7 @@ def maskToDays(self, daysValue):
     return(daysList)
 
 def openClose2ISY(self, state):
-    logging.debug(f'openClose2ISY {state}')
+    #logging.debug(f'openClose2ISY {state}')
     if state in ['OPEN', 'CLOSED']:
         if state == 'OPEN':
             return(1)
@@ -65,7 +65,7 @@ def openClose2ISY(self, state):
         return(None)
     
 def priority2ISY(self, state):
-    logging.debug(f'priority2ISY {state}')
+    #logging.debug(f'priority2ISY {state}')
     if state in ['MUST_HAVE', 'NICE_TO_HAVE', 'NOT_ESSENTIAL']:
         if state == 'MUST_HAVE':
             return(0)
@@ -130,7 +130,7 @@ def daylist2bin(self, daylist):
 
 
 def season2ISY(self, season):
-    logging.debug('season2ISY {}'.format(season))
+    #logging.debug('season2ISY {}'.format(season))
     if season.upper() == 'WINTER':
         return(0)
     elif season.upper() == 'SUMMER':
@@ -142,7 +142,7 @@ def season2ISY(self, season):
     
 
 def period2ISY(self, period):
-    logging.debug('period2ISY {}'.format(period))
+    #logging.debug('period2ISY {}'.format(period))
     if period.upper() == 'OFF_PEAK':
         return(0)
     elif period.upper() == 'PARTIAL_PEAK':
@@ -166,7 +166,7 @@ def my_setDriver(self, key, value, Unit=None):
 
 def send_rel_temp_to_isy(self, temperature, stateVar):
     logging.debug('convert_temp_to_isy - {}'.format(temperature))
-    logging.debug('ISYunit={}, Mess_unit={}'.format(self.ISY_temp_unit , self.messana_temp_unit ))
+    #logging.debug('ISYunit={}, Mess_unit={}'.format(self.ISY_temp_unit , self.messana_temp_unit ))
     if self.ISY_temp_unit == 0: # Celsius in ISY
         if self.messana_temp_unit == 'Celsius' or self.messana_temp_unit == 0:
             self.node.setDriver(stateVar, round(temperature,1), True, True, 4)
@@ -186,7 +186,7 @@ def send_rel_temp_to_isy(self, temperature, stateVar):
 
 def send_temp_to_isy (self, temperature, stateVar):
     logging.debug('convert_temp_to_isy - {}'.format(temperature))
-    logging.debug('ISYunit={}, Mess_unit={}'.format(self.ISY_temp_unit , self.messana_temp_unit ))
+    #logging.debug('ISYunit={}, Mess_unit={}'.format(self.ISY_temp_unit , self.messana_temp_unit ))
     if self.ISY_temp_unit == 0: # Celsius in ISY
         if self.messana_temp_unit == 'Celsius' or self.messana_temp_unit == 0:
             self.node.setDriver(stateVar, round(temperature,1), True, True, 4)

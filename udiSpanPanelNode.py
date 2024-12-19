@@ -59,7 +59,7 @@ class udiSpanPanelNode(udi_interface.Node):
     def create_subnodes(self):
         logging.debug(f'create_subnodes - {self.name}')
         code, self.circuits = self.span_panel.getSpanCircuitsInfo()
-        logging.debug(f'Panel {self.span_ipadr} Circuits info: {code} , {self.circuits }')            
+        #logging.debug(f'Panel {self.span_ipadr} Circuits info: {code} , {self.circuits }')            
         if code == 200:
             for circuit in self.circuits:
                 logging.debug('adding circuit {} = {}'.format(circuit,self.circuits[circuit]['name'] ))
