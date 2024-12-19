@@ -139,13 +139,16 @@ class SpanAccess(object):
                 t_24hour = update_time
                 prod_24_hour = self.accum_data[breaker_id][update_time]['producedWh']
                 cons_24_hour = self.accum_data[breaker_id][update_time]['consumedWh']
-        delete_list = []
-        for meas_data in self.accum_data[breaker_id]: 
-            if update_time< t_24hour:
-                delete_list.append(self.accum_data[breaker_id][update_time])
-        for indx, meas_data in enumerate(delete_list):
-             self.accum_data[breaker_id].pop(self.accum_data[breaker_id][update_time])
-             logging.debug(f'remove meas {self.accum_data[breaker_id][update_time]} , {time.time()-daySec} ')
+        try:
+            delete_list = []
+            for update_time in self.accum_data[breaker_id]:
+                if update_time< t_24hour:
+                    delete_list.append(self.accum_data[breaker_id][update_time])
+            for indx, meas_data in enumerate(delete_list):
+                self.accum_data[breaker_id].pop(self.accum_data[breaker_id][meas_data['update_time']])
+                logging.debug(f'remove meas {meas_data} , {time.time()-daySec} ')
+        except Exception as e:
+            logging.error(f'Excaption deleta data {e}')
         #logging.debug(f'size of accum_data {len(self.accum_data[breaker_id])}')
 
 
