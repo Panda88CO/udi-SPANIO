@@ -148,8 +148,8 @@ class SpanAccess(object):
                     delete_list.append(self.accum_data[breaker_id][update_time])
             logging.debug(f'deletelist: {delete_list}')
             for indx, meas_data in enumerate(delete_list):
-                logging.debug(f'remove before1 {meas_data}, {int(time.time())-daySec} ')
-                logging.debug('remove befores2 {}'.format(meas_data['update_time']))
+                logging.debug(f'remove befor1 {meas_data}, {int(time.time())-daySec} ')
+                logging.debug('remove before2 {}'.format(meas_data['update_time']))
                 del self.accum_data[breaker_id][meas_data['update_time']]
                 logging.debug(f'remove meas {meas_data} ')
         except Exception as e:
