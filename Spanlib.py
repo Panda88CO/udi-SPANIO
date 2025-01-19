@@ -327,7 +327,7 @@ class SpanAccess(object):
         try:
             produced_energy =  self.span_data['circuit_info'][breaker_id]['producedEnergyWh']
             consumed_energy = self.span_data['circuit_info'][breaker_id]['consumedEnergyWh'] 
-            meas_time = self.span_data['circuit_info'][breaker_id]['energyAccumUpdateTimeS'])
+            meas_time = self.span_data['circuit_info'][breaker_id]['energyAccumUpdateTimeS']
             #logging.debug(f'{breaker_id} get_breaker_energy_info {produced_energy} {consumed_energy} {delay_time}')
             return(produced_energy, consumed_energy, meas_time)
         except Exception as e:
