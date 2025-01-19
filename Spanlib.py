@@ -317,8 +317,8 @@ class SpanAccess(object):
         #logging.debug('data {}'.format(self.span_data['circuit_info'][breaker_id]))
         try:
             pwr = self.span_data['circuit_info'][breaker_id]['instantPowerW']
-            delay_time = int(time.time() -self.span_data['circuit_info'][breaker_id]['instantPowerUpdateTimeS'])
-            return(pwr,  delay_time )
+            meas_time = int(time.time() -self.span_data['circuit_info'][breaker_id]['instantPowerUpdateTimeS'])
+            return(pwr,  meas_time )
         except Exception as e:
             return(None)    
 
@@ -327,9 +327,9 @@ class SpanAccess(object):
         try:
             produced_energy =  self.span_data['circuit_info'][breaker_id]['producedEnergyWh']
             consumed_energy = self.span_data['circuit_info'][breaker_id]['consumedEnergyWh'] 
-            delay_time = int(time.time() -self.span_data['circuit_info'][breaker_id]['energyAccumUpdateTimeS'])
+            meas_time = self.span_data['circuit_info'][breaker_id]['energyAccumUpdateTimeS'])
             #logging.debug(f'{breaker_id} get_breaker_energy_info {produced_energy} {consumed_energy} {delay_time}')
-            return(produced_energy, consumed_energy, delay_time)
+            return(produced_energy, consumed_energy, meas_time)
         except Exception as e:
             return(None)    
 

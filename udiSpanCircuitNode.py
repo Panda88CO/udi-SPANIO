@@ -61,10 +61,10 @@ class udiSpanCircuitNode(udi_interface.Node):
         #logging.debug(f'data: {self.span_panel.span_data}')
         self.my_setDriver('ST', self.openClose2ISY(self.span_panel.get_breaker_state(self.circuit)))
         self.my_setDriver('GV1', self.priority2ISY(self.span_panel.get_breaker_priority(self.circuit)))
-        pwr, delay_time = self.span_panel.get_breaker_instant_power(self.circuit)
+        pwr, meas_time = self.span_panel.get_breaker_instant_power(self.circuit)
         self.my_setDriver('GV2', round(-pwr, 1), 73)
-        self.my_setDriver('GV4', delay_time)  # Needs to be updated
-        imp_wh, exp_wh, delay_time = self.span_panel.get_breaker_energy_info(self.circuit)
+        self.my_setDriver('GV4', meas_time)  # Needs to be updated
+        imp_wh, exp_wh, meas_time = self.span_panel.get_breaker_energy_info(self.circuit)
         self.my_setDriver('GV5', round(imp_wh, 1), 119 ) 
         self.my_setDriver('GV6', round(exp_wh, 1), 119 )   
         producedWh, consumerWh = self.span_panel.get1HourAverage(self.circuit)
@@ -78,7 +78,7 @@ class udiSpanCircuitNode(udi_interface.Node):
             self.my_setDriver('GV8', -round((producedWh- consumerWh),1), 119) 
         else:
             self.my_setDriver('GV8', None, 25)           
-        self.my_setDriver('GV9', delay_time )  
+        self.my_setDriver('GV9', meas_time )  
 
     def ISYupdate (self, command):
         logging.debug('ISY-update called')
