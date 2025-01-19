@@ -16,7 +16,7 @@ except ImportError:
     logging.basicConfig(level=30)
 
 
-VERSION = '0.1.10'
+VERSION = '0.1.11'
 class SPANController(udi_interface.Node):
     from  udiLib import node_queue, wait_for_node_done, random_string, mask2key, heartbeat, bool2ISY, my_setDriver
 
@@ -282,7 +282,7 @@ class SPANController(udi_interface.Node):
     commands = { 'UPDATE': ISYupdate }
     drivers = [
             {'driver': 'ST', 'value':0, 'uom':25},
-            {'driver': 'GV1', 'value':0, 'uom':25},
+            {'driver': 'GV1', 'value':0, 'uom':56},
             ]
 
 if __name__ == "__main__":
